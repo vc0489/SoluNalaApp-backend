@@ -38,7 +38,7 @@ app.get('/', (request, response) => {
 })
 
 app.get('/api/v1/cats', (req, res, next) => {
-  const query = 'SELECT * FROM cat'
+  const query = 'SELECT * FROM cat ORDER BY birthdate ASC'
   res.locals.connection.query(query, (err, rows, fields) => {
     if (err) throw err
     //res.send(JSON.stringify({"status": 200, "error": null, "response": rows}))
@@ -47,7 +47,9 @@ app.get('/api/v1/cats', (req, res, next) => {
       return ({
         id: row.id,
         name: row.cat_name,
-        birthdate: format_datetime_to_date(row.birthdate)
+        birthdate: format_datetime_to_date(row.birthdate),
+        breed: row.breed,
+        colour: row.colour
       })
     })
     res.json(output_rows)
@@ -74,18 +76,28 @@ const transformNotes = (rows) => {
 }
 
 // TODO - order by increasing date
+// Latest entry per cat+date
 app.get('/api/v1/weights', (req, res, next) => {
   const cat_id = req.query.cat_id
   console.log('cat_id=' + cat_id)
   
   let query
+  query = `
+    SELECT dw.* FROM daily_weight dw 
+    JOIN (
+      SELECT cat_id, MAX(id) AS max_id 
+      FROM daily_weight
+      GROUP BY cat_id, weigh_date
+    ) latest 
+    ON dw.cat_id=latest.cat_id AND dw.id=latest.max_id
+  `
 
   if (cat_id) {
-    query = mysql.format('SELECT * FROM daily_weight WHERE cat_id=?', [cat_id])
-  } else {
-    query = 'SELECT * FROM daily_weight'
+    query = query + mysql.format(' WHERE dw.cat_id=?', [cat_id])
   }
 
+  query = query + ' ORDER BY weigh_date DESC, cat_id ASC'
+  
   res.locals.connection.query(query, (err, rows, fields) => {
     if (err) throw err
     console.log(rows)
@@ -156,6 +168,7 @@ app.get('/api/v1/notes', (req, res, next) => {
     SELECT
       note.id,
       note.note_date AS date,
+      note.note_time AS time,
       note.cat_id,
       note.note_type_id,
       note_type.type_description AS note_type,
@@ -188,9 +201,9 @@ app.post('/api/v1/notes', (req, res, next) => {
     })
   }
   
-  insert_data = body.map(note => [note.cat_id, note.note_type_id, note.date, note.content])
+  insert_data = body.map(note => [note.cat_id, note.note_type_id, note.date, note.time, note.content])
   query = mysql.format(
-    'INSERT INTO note (cat_id, note_type_id, note_date, content) VALUES ?',
+    'INSERT INTO note (cat_id, note_type_id, note_date, note_time, content) VALUES ?',
     [insert_data]
   )
   
