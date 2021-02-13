@@ -1,111 +1,98 @@
-require('dotenv').config()
+//require('dotenv').config()
 
-const mysql = require('mysql')
+// For connection pool
+// https://dev.to/gduple/pool-party-mysql-pool-connections-in-node-js-3om7
+//const mysql = require('mysql')
+
+const db = require('./db')
+const transformers = require('./sql_output_transformers')
+
 const express = require('express')
 const cors = require('cors')
 const moment = require('moment')
 
 const app = express()
-
-//const Person = require('./models/person')
-
-//app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
-
-//const morgan = require('morgan')
-//morgan.token('content', (request) => {
-//  return JSON.stringify(request.body)
-//})
-//app.use(morgan(':method :url :status :res[content-length] - :response-time ms :content'))
-
-const format_datetime_to_date = (datetime) => moment(datetime).format('YYYY-MM-DD')
-
-app.use((req, res, next) => {
-  res.locals.connection = mysql.createConnection({
-    host: process.env.AWS_DB_HOST,
-    user: process.env.AWS_DB_USERNAME,
-    password: process.env.AWS_DB_PASSWORD,
-    database: process.env.AWS_DB_NAME
-  })
-  res.locals.connection.connect()
-  next()
+// For CSV upload handling
+const csv = require('csvtojson')
+const multer = require('multer')
+const memoryStorage = multer.memoryStorage()
+const memUpload = multer({
+  storage: memoryStorage,
+  limit: { fileSize: 30 * 1024 * 2014, files: 1}
 })
+
+//const format_datetime_to_date = datetime => moment(datetime).format('YYYY-MM-DD')
+
+
+const baseUrl = '/api/v1/'
 
 app.get('/', (request, response) => {
   response.send('<h1>Welcome to SoluNala World!</h1>')
 })
 
-app.get('/api/v1/cats', (req, res, next) => {
-  const query = 'SELECT * FROM cat ORDER BY birthdate ASC'
-  res.locals.connection.query(query, (err, rows, fields) => {
-    if (err) throw err
-    //res.send(JSON.stringify({"status": 200, "error": null, "response": rows}))
-    console.log(rows)
-    const output_rows = rows.map(row => {
-      return ({
-        id: row.id,
-        name: row.cat_name,
-        birthdate: format_datetime_to_date(row.birthdate),
-        breed: row.breed,
-        colour: row.colour
-      })
-    })
-    res.json(output_rows)
+app.get(baseUrl + 'cats', (req, res, next) => {
+  console.log('In /api/v1/cats')
+  db.getCats((err, rows) => {
+    if (err) {
+      res.status(500).json({error: "Server Error when calling db.getCats"})
+      return
+    }
+    console.log(`In /api/v1/cats: rows=${JSON.stringify(rows)}`)
+    res.json(transformers.transformCats(rows))
   })
 })
 
-const transformWeights = (rows) => {
-  return rows.map(row => {
-    return ({
-      cat_id: row.cat_id,
-      grams: row.grams,
-      date: format_datetime_to_date(row.weigh_date)
-    })
-  })
-}
-
-const transformNotes = (rows) => {
-  return rows.map(row => {
-    return ({
-      ...row,
-      date: format_datetime_to_date(row.date)
-    })
-  })
-}
 
 // TODO - order by increasing date
 // Latest entry per cat+date
-app.get('/api/v1/weights', (req, res, next) => {
-  const cat_id = req.query.cat_id
+app.get(baseUrl + 'weights', (req, res, next) => {
+  const cat_id = req.query.cat_id || null
   console.log('cat_id=' + cat_id)
   
-  let query
-  query = `
-    SELECT dw.* FROM daily_weight dw 
-    JOIN (
-      SELECT cat_id, MAX(id) AS max_id 
-      FROM daily_weight
-      GROUP BY cat_id, weigh_date
-    ) latest 
-    ON dw.cat_id=latest.cat_id AND dw.id=latest.max_id
-  `
-
-  if (cat_id) {
-    query = query + mysql.format(' WHERE dw.cat_id=?', [cat_id])
-  }
-
-  query = query + ' ORDER BY weigh_date DESC, cat_id ASC'
-  
-  res.locals.connection.query(query, (err, rows, fields) => {
-    if (err) throw err
-    console.log(rows)
-    res.json(transformWeights(rows))
+  db.getWeights(cat_id, (err, rows, fields) => {
+    if (err) {
+      res.status(500).json({
+        error: 'Internal error when calling db.getWeights'
+      })
+    }
+    //console.log(rows)
+    res.json(transformers.transformWeights(rows))
   })
+
+  
 })
 
-app.post('/api/v1/weights', (req, res, next) => {
+app.post(baseUrl + 'weight_file', memUpload.single('csvFile'), async (req, res) => {
+  console.log(req.file.buffer)
+  const cat_id = req.body.catID
+  //console.log(req.files)
+  const weightData = await csv().fromString(req.file.buffer.toString())
+  console.log('cat_id:', cat_id, '; weightData:', weightData)
+
+  const weightDataToInsert = weightData.map(data => {
+    return ({
+      grams: data.Weight,
+      weigh_date: data.Date
+    })
+  })
+
+  db.addWeights(cat_id, weightDataToInsert, (err, db_res) => {
+    if (err) {
+      res.status(500).json({
+        error: 'Internal error when calling db.getWeights - ' + db_res
+      })
+    }
+
+    res.json(transformers.transformWeights(db_res))
+  })
+
+})
+
+
+app.post(baseUrl + 'weights', (req, res, next) => {
   const body = req.body
   
   console.log(body)
@@ -115,42 +102,33 @@ app.post('/api/v1/weights', (req, res, next) => {
     })
   }
   
+  
   //TODO - use this to generate query
-  const toInsert = {
-    cat_id: body.cat_id,
+  const toInsert = [{
     grams: body.grams,
     weigh_date: body.date,
-  }
+  }]
 
-  query = mysql.format(
-    'INSERT INTO daily_weight (cat_id, grams, weigh_date) VALUES (?,?,?)',
-    [body.cat_id, body.grams, body.date]
-  )
-
-  res.locals.connection.query(query, (err, query_res) => {
-    if (err) throw err
-    console.log('Inserted weight')
-    console.log('query_res:', query_res)
-    res.json(body)
+  db.addWeights(body.cat_id, toInsert, (err, db_res) => {
+    if (err) {
+      res.status(500).json({
+        error: 'Internal error when calling db.getWeights - ' + db_res
+      })
+    }
+    console.log(`In POST /api/v1/weights: db_res=${JSON.stringify(transformers.transformWeights(db_res))}`)
+    res.json(transformers.transformWeights(db_res))
   })
+  
 })
 
-app.get('/api/v1/weights/:id', (req, res, next) => {
-  const query = mysql.format('SELECT * FROM daily_weight WHERE id = ?', [req.params.id])
 
-  res.locals.connection.query(query, (err, rows, fields) => {
-    if (err) throw err
-    console.log(rows)
-    res.json(transformWeights(rows))
-  })
-})
 
-app.get('/api/v1/note_types', (req, res, next) => {
-  const query = 'SELECT * FROM note_type'
-  res.locals.connection.query(query, (err, rows, fields) => {
-    if (err) throw err
-
-    console.log(rows)
+app.get(baseUrl + 'note_types', (req, res, next) => {
+  db.getNoteTypes((err, rows) => {
+    if (err) {
+      res.status(500).json({error: "Server Error when calling db.getNoteTypes"})
+      return
+    }
     const output_rows = rows.map(row => {
       return ({
         id: row.id,
@@ -158,38 +136,27 @@ app.get('/api/v1/note_types', (req, res, next) => {
       })
     })
     res.json(output_rows)
+
   })
+
 })
 
-app.get('/api/v1/notes', (req, res, next) => {
-  const cat_id = req.query.cat_id
-  const note_type_id = req.query.note_type_id
-  let query = `
-    SELECT
-      note.id,
-      note.note_date AS date,
-      note.note_time AS time,
-      note.cat_id,
-      note.note_type_id,
-      note_type.type_description AS note_type,
-      note.content
-    FROM note
-    LEFT JOIN note_type
-    ON note.note_type_id=note_type.id
-    WHERE 1=1
-  `
+app.get(baseUrl + 'notes', (req, res, next) => {
+  const cat_id = req.query.cat_id || null
+  const note_type_id = req.query.note_type_id || null
   
-  if (cat_id) query = mysql.format(`${query} AND cat_id=?`, cat_id)
-  if (note_type_id) query = mysql.format(`${query} AND note_type_id=?`, note_type_id)
-  
-  res.locals.connection.query(query, (err, rows, fields) => {
-    if (err) throw err
-    console.log(rows)
-    res.json(transformNotes(rows))
+  db.getNotes(cat_id, note_type_id, (err, rows) => {
+    if (err) {
+      res.status(500).json({error: "Server Error when calling db.getNotes"})
+      return
+    }
+    res.json(transformers.transformNotes(rows))
   })
+  
 })
 
-app.post('/api/v1/notes', (req, res, next) => {
+// TODO - refactor to db.js
+app.post(baseUrl + 'notes', (req, res, next) => {
   const body = req.body
   console.log('in POST /api/v1/notes')
   console.log(body)
@@ -201,42 +168,26 @@ app.post('/api/v1/notes', (req, res, next) => {
     })
   }
   
-  insert_data = body.map(note => [note.cat_id, note.note_type_id, note.date, note.time, note.content])
-  query = mysql.format(
-    'INSERT INTO note (cat_id, note_type_id, note_date, note_time, content) VALUES ?',
-    [insert_data]
+  db.postNotes(
+    body,
+    (err, query_res) => {
+      if (err) {
+        res.status(500).json({error: "Server Error when calling db.postNote"})
+        return
+      }
+      console.log('query_res:', query_res)
+      console.log(`note id=${query_res.insertId}`)
+      const addedNotes = body.map((note, index) => {
+        return {...note, 'id': query_res.insertId+index}
+      })
+      res.json({result: 'Success', added_notes: addedNotes})
+    }
   )
-  
-
-  res.locals.connection.query(query, (err, query_res) => {
-    if (err) throw err
-    console.log('Inserted note(s)')
-    console.log('query_res:', query_res)
-    res.json(body)
-  })
-
-  /*
-  //TODO - use this to generate request
-  const toInsert = {
-    cat_id: body.cat_id,
-    note_type_id: body.note_type_id,
-    note_date: body.date,
-    content: body.content
-  }
-  query = mysql.format(
-    'INSERT INTO note (cat_id, note_type_id, note_date, content) VALUES (?,?,?,?)',
-    [body.cat_id, body.note_type_id, body.date, body.content]
-  )
-
-  res.locals.connection.query(query, (err, query_res) => {
-    if (err) throw err
-    console.log('Inserted note')
-    console.log('query_res:', query_res)
-    res.json()
-  })
-  */
 })
 
+
+// TODO - refactor to db.js
+/*
 app.get('/api/v1/notes/:id', (req, res, next) => {
   
   const query = mysql.format(`
@@ -259,8 +210,22 @@ app.get('/api/v1/notes/:id', (req, res, next) => {
     res.json(rows)
   })
 })
+*/
 
-app.get('/')
+app.get(baseUrl + 'foods', (req, res, next) => {
+  db.getFoods((err, rows) => {
+    if (err) {
+      res.status(500).json({error: "Server Error when calling db.getFoods"})
+      return
+    }
+    console.log(`In ${baseUrl}foods: rows=${JSON.stringify(rows)}`)
+
+    //const transformedFoods = transformers.transformFoods(rows)
+    console.log('transformedFoods', transformers.transformFoods(rows))
+    res.json(transformers.transformFoods(rows))
+  })
+})
+
 const unknownEndPoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint' })
 }
@@ -271,78 +236,6 @@ const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
-/*
-
-app.get('/info', (request, response) => {
-  Person.countDocuments({}).then(count => {
-    let d = new Date()
-    let msg = `<p>Phonebook has info for ${count} people</p><p>${d.toString()}</p>`
-    response.send(msg)
-  })
-})
-
-
-app.get('/api/persons/:id', (request, response, next) => {
-  Person.findById(request.params.id)
-    .then(person => {
-      response.json(person)
-    })
-    .catch(error => next(error))
-})
-
-app.delete('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndRemove(request.params.id)
-    .then(() => {
-      response.status(204).end()
-    })
-    .catch(error => next(error))
-})
-
-
-
-app.post('/api/persons', (request, response, next) => {
-  const body = request.body
-
-  if (!body.name || !body.number)  {
-    return response.status(400).json({
-      error: 'name or number missing'
-    })
-  }
-  
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  })
-
-  person.save()
-    .then(savedPerson => {
-      response.json(savedPerson)
-    })
-    .catch(error => {
-      console.log(error.name)
-      console.log(error)
-      return next(error)
-    })
-})
-
-app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
-
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
-    .then(updatedPerson => {
-      response.json(updatedPerson)
-    })
-    .catch(error => next(error))
-})
-
-
-*/
 
 /*
 // Handle error
@@ -361,4 +254,20 @@ const errorHandler = (error, request, response, next) => {
 }
 
 app.use(errorHandler)
+*/
+
+
+// Decommissioned code
+
+/* Old code to add connection to app local vars
+app.use((req, res, next) => {
+  res.locals.connection = mysql.createConnection({
+    host: process.env.AWS_DB_HOST,
+    user: process.env.AWS_DB_USERNAME,
+    password: process.env.AWS_DB_PASSWORD,
+    database: process.env.AWS_DB_NAME
+  })
+  res.locals.connection.connect()
+  next()
+})
 */
