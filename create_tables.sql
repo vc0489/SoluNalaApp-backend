@@ -83,7 +83,9 @@ CREATE TABLE note (
     cat_id TINYINT UNSIGNED NOT NULL,
     note_type_id TINYINT UNSIGNED NOT NULL,
     note_date DATE NOT NULL,
+    note_time VARCHAR(5) NOT NULL,
     content VARCHAR(1000) NOT NULL,
+    last_updated DATETIME DEFAULT NOW(),
     FOREIGN KEY (cat_id) REFERENCES cat(id),
     FOREIGN KEY (note_type_id) REFERENCES note_type(id)
 );
@@ -93,13 +95,38 @@ INSERT INTO note (cat_id, note_type_id, note_date, content) VALUES
     1,
     3,
     '2021-01-06',
+    '11:00',
     'Diarrhoea'
 );
 
 
+CREATE TABLE food_brand (
+  id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  brand_name VARCHAR(30) NOT NULL,
+  last_updated DATETIME DEFAULT NOW()
+);
+
+INSERT INTO food_brand (brand_name) VALUES 
+( 'KatKin' ),
+( 'Bozita' ),
+( 'Cosma' );
 
 
+CREATE TABLE food_detail (
+  id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  brand_id SMALLINT UNSIGNED NOT NULL,
+  details VARCHAR(120) NOT NULL,
+  last_updated DATETIME DEFAULT NOW(),
+  FOREIGN KEY (brand_id) REFERENCES food_brand(id)
+);
 
+INSERT INTO food_detail (brand_id, details) VALUES 
+( 1, 'Splash' ),
+( 1, 'Oink' ),
+( 1, 'Gobble' ),
+( 1, 'Quack' ),
+( 2, 'Crayfish - Chunks in Jelly'),
+( 3, 'Skipjack Tuna in Jelly');
 
 
 

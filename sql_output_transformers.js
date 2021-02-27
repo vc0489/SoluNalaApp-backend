@@ -14,6 +14,9 @@ const transformCats = (rows) => {
 }
 
 const transformWeights = rows => {
+  if (!rows) {
+    return []
+  }
   return rows.map(row => {
     return ({
       cat_id: row.cat_id,
