@@ -112,15 +112,15 @@ INSERT INTO food_brand (brand_name) VALUES
 ( 'Cosma' );
 
 
-CREATE TABLE food_detail (
+CREATE TABLE food_product (
   id SMALLINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
   brand_id SMALLINT UNSIGNED NOT NULL,
-  details VARCHAR(120) NOT NULL,
+  product VARCHAR(120) NOT NULL,
   last_updated DATETIME DEFAULT NOW(),
   FOREIGN KEY (brand_id) REFERENCES food_brand(id)
 );
 
-INSERT INTO food_detail (brand_id, details) VALUES 
+INSERT INTO food_product (brand_id, product) VALUES 
 ( 1, 'Splash' ),
 ( 1, 'Oink' ),
 ( 1, 'Gobble' ),
@@ -128,7 +128,18 @@ INSERT INTO food_detail (brand_id, details) VALUES
 ( 2, 'Crayfish - Chunks in Jelly'),
 ( 3, 'Skipjack Tuna in Jelly');
 
-
+CREATE TABLE food (
+    id MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    cat_id TINYINT UNSIGNED NOT NULL,
+    food_date DATE NOT NULL,
+    brand_id SMALLINT UNSIGNED NOT NULL,
+    product_id SMALLINT UNSIGNED NOT NULL,
+    rating TINYINT UNSIGNED,
+    last_updated DATETIME DEFAULT NOW(),
+    FOREIGN KEY (cat_id) REFERENCES cat(id),
+    FOREIGN KEY (brand_id) REFERENCES food_brand(id),
+    FOREIGN KEY (product_id) REFERENCES food_product(id)
+)
 
 
 

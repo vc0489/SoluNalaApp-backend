@@ -43,21 +43,21 @@ const transformFoods = rows => {
   rows.forEach(item => {
     //console.log(item)
     foodObj = {
-      'food_id': item.food_id,
-      'food': item.food
+      'product_id': item.product_id,
+      'product': item.product
     }
 
-    if (item.brand_id in transformedFoods) {
-      transformedFoods[item.brand_id].push(foodObj)
+    if (item.brand in transformedFoods) {
+      transformedFoods[item.brand].push(foodObj)
     } else {
-      brandMap[item.brand_id] = item.brand
-      transformedFoods[item.brand_id] = [foodObj]
+      brandMap[item.brand] = item.brand_id
+      transformedFoods[item.brand] = [foodObj]
     }
   })
 
   //console.log('brandMap:', brandMap)
-  console.log('transformFoods output:', {'id_map': brandMap, 'foods': transformedFoods})
-  return {'id_map': brandMap, 'foods': transformedFoods}
+  console.log('transformFoods output:', {'brand_to_id_map': brandMap, 'foods': transformedFoods})
+  return {'brand_to_id_map': brandMap, 'foods': transformedFoods}
 }
 
 module.exports = {

@@ -4,7 +4,18 @@
 // https://dev.to/gduple/pool-party-mysql-pool-connections-in-node-js-3om7
 //const mysql = require('mysql')
 
-const db = require('./db')
+const { MySqlPool } = require('./MySqlPool')
+const pool = new MySqlPool()
+const [err, rows] = pool.syncQuery('SELECT * FROM cat')
+console.log(err)
+console.log(rows)
+/*
+console.log(pool.query('SELECT * FROM cat', (a,b,c) => {
+  console.log(a)
+  console.log(b)
+}))
+*/
+const db = require('./db_new')
 const transformers = require('./sql_output_transformers')
 
 const express = require('express')
@@ -35,7 +46,7 @@ app.get('/', (request, response) => {
 
 app.get(baseUrl + 'cats', (req, res, next) => {
   console.log('In /api/v1/cats')
-  db.getCats((err, rows) => {
+  db.getCats(pool, (err, rows) => {
     if (err) {
       res.status(500).json({error: "Server Error when calling db.getCats"})
       return
@@ -52,7 +63,7 @@ app.get(baseUrl + 'weights', (req, res, next) => {
   const cat_id = req.query.cat_id || null
   console.log('cat_id=' + cat_id)
   
-  db.getWeights(cat_id, (err, rows, fields) => {
+  db.getWeights(pool, cat_id, (err, rows, fields) => {
     if (err) {
       res.status(500).json({
         error: 'Internal error when calling db.getWeights'
@@ -79,7 +90,7 @@ app.post(baseUrl + 'weight_file', memUpload.single('csvFile'), async (req, res) 
     })
   })
 
-  db.addWeights(cat_id, weightDataToInsert, (err, db_res) => {
+  db.addWeights(pool, cat_id, weightDataToInsert, (err, db_res) => {
     if (err) {
       res.status(500).json({
         error: 'Internal error when calling db.getWeights - ' + db_res
@@ -109,7 +120,7 @@ app.post(baseUrl + 'weights', (req, res, next) => {
     weigh_date: body.date,
   }]
 
-  db.addWeights(body.cat_id, toInsert, (err, db_res) => {
+  db.addWeights(pool, body.cat_id, toInsert, (err, db_res) => {
     if (err) {
       res.status(500).json({
         error: 'Internal error when calling db.getWeights - ' + db_res
@@ -124,7 +135,7 @@ app.post(baseUrl + 'weights', (req, res, next) => {
 
 
 app.get(baseUrl + 'note_types', (req, res, next) => {
-  db.getNoteTypes((err, rows) => {
+  db.getNoteTypes(pool, (err, rows) => {
     if (err) {
       res.status(500).json({error: "Server Error when calling db.getNoteTypes"})
       return
@@ -145,7 +156,7 @@ app.get(baseUrl + 'notes', (req, res, next) => {
   const cat_id = req.query.cat_id || null
   const note_type_id = req.query.note_type_id || null
   
-  db.getNotes(cat_id, note_type_id, (err, rows) => {
+  db.getNotes(pool, cat_id, note_type_id, (err, rows) => {
     if (err) {
       res.status(500).json({error: "Server Error when calling db.getNotes"})
       return
@@ -169,6 +180,7 @@ app.post(baseUrl + 'notes', (req, res, next) => {
   }
   
   db.postNotes(
+    pool,
     body,
     (err, query_res) => {
       if (err) {
@@ -213,7 +225,7 @@ app.get('/api/v1/notes/:id', (req, res, next) => {
 */
 
 app.get(baseUrl + 'foods', (req, res, next) => {
-  db.getFoods((err, rows) => {
+  db.getFoods(pool, (err, rows) => {
     if (err) {
       res.status(500).json({error: "Server Error when calling db.getFoods"})
       return
@@ -226,6 +238,19 @@ app.get(baseUrl + 'foods', (req, res, next) => {
   })
 })
 
+
+app.post(baseUrl + 'foods', (req, res, next) => {
+  const body = req.body
+  console.log('in POST /api/v1/foods')
+  console.log(body)
+
+
+  db.addFood(pool, body, (err, query_res) =>{
+    console.log(query_res)
+  })
+
+  
+})
 const unknownEndPoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint' })
 }

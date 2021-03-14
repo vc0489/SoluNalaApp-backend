@@ -1,47 +1,26 @@
-require('dotenv').config()
-//const mysql = require('mysql2/promise')
+//const { MySqlPool } = require('./MySqlPool')
 const mysql = require('mysql2')
-//const promisify = require('utils').promisify
 
+//const pool = MySqlPool()
 
-const pool = mysql.createPool({
-  host: process.env.AWS_DB_HOST,
-  user: process.env.AWS_DB_USERNAME,
-  password: process.env.AWS_DB_PASSWORD,
-  database: process.env.AWS_DB_NAME,
-  connectionLimit: 5
-})
+class DataService {
+  constructor(db) {
+    this.db = db
+  }
 
-const sqlQuery = (query, callback) => {
-  pool.getConnection((err, conn) => {
-    if (err) {
-      console.log(err)
-      callback(true)
-      return
-    }
-
-    //console.log(`In sqlQuery: query=${query}`)
-    conn.query(query, (err, res) => {
-      conn.release()
-      if (err) {
-        console.log(err)
-        callback(true)
-        return
-      }
-      //console.log(`In sqlQuery: res=${res}`)
-      callback(false, res)
-    })
-  })
+}
+const sqlQuery = (db, query, callback) => {
+  console.log(query)
+  db.query(query, callback)
+  //callback(err, res, fields)
 }
 
-const getCats = callback => {
+const getCats = (db, callback) => {
   const query = 'SELECT * FROM cat ORDER BY birthdate ASC'
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 }
 
-
-
-const getNotes = (cat_id, note_type_id, callback) => {
+const getNotes = (db, cat_id, note_type_id, callback) => {
 
   let query = `
     SELECT
@@ -61,11 +40,11 @@ const getNotes = (cat_id, note_type_id, callback) => {
   if (cat_id) query = mysql.format(`${query} AND cat_id=?`, cat_id)
   if (note_type_id) query = mysql.format(`${query} AND note_type_id=?`, note_type_id)
   
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
   
 }
 
-const postNotes = (insert_json_data, callback) => {
+const postNotes = (db, insert_json_data, callback) => {
   // cat_id, note_type_id, date, time, content
   // https://stackoverflow.com/questions/8899802/how-do-i-do-a-bulk-insert-in-mysql-using-node-js
   // 
@@ -83,45 +62,24 @@ const postNotes = (insert_json_data, callback) => {
     [insert_array]
   )
 
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 
 }
 
-const getNoteTypes = (callback) => {
+const getNoteTypes = (db, callback) => {
   const query = 'SELECT * FROM note_type'
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 }
 
 
-const getWeights = (cat_id, callback) => {
+const getWeights = (db, cat_id, callback) => {
   const query = _getWeightsQuery(cat_id)
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 }
 
-const _getWeightsQuery = (cat_id = null) => {
-  let query
-  
-  // Latest recorded weight (using id) grouped by (cat_id, weigh_date)
-  query = `
-    SELECT dw.* FROM daily_weight dw 
-    JOIN (
-      SELECT cat_id, MAX(id) AS max_id 
-      FROM daily_weight
-      GROUP BY cat_id, weigh_date
-    ) latest 
-    ON dw.cat_id=latest.cat_id AND dw.id=latest.max_id
-  `
 
-  if (cat_id) {
-    query = query + mysql.format(' WHERE dw.cat_id=?', [cat_id])
-  }
 
-  query = query + ' ORDER BY weigh_date DESC, cat_id ASC'
-  
-  return query
-}
-
-const addWeights = async (cat_id, weightsData, callback) => {
+const addWeights = (db, cat_id, weightsData, callback) => {
   // weightsData - array of weight entries {cat_id, grams, weigh_date}
     
   const insert_values = weightsData.map(
@@ -135,36 +93,28 @@ const addWeights = async (cat_id, weightsData, callback) => {
   //console.log(`query=${query}`)
   query = 'INSERT INTO daily_weight (cat_id,grams,weigh_date) VALUES ' + query
   
-  try {
-    await pool.promise().query(query)
-  } catch (err) {
-    //conn.release()
-    console.log(err)
-    callback(true, {msg: "Error inserting weight(s) into DB"})
+  console.log(db)
+  const [insertErr] = db.syncQuery(query)
+  
+  
+  //const [insertErr] = await db.promisifiedQuery(query)
+  if (insertErr) {
+    console.log(insertErr)
+    callback(true, {msg: "Error inserting weight(s) into DB", err: insertErr})
     return
   }
-  
-  try {
-    // .promise() provides promise connections from pool (https://www.npmjs.com/package/mysql2)
-    [rows, ] = await pool.promise().query(_getWeightsQuery())
-    //conn.release()
-    //console.log(rows)
-    callback(false, rows) // res = new weights
-  } catch (err) {
-    //conn.release()
-    console.log(err)
-    callback(true, {msg: "Error fetching new weight(s) from DB"})
-  }
+
+  sqlQuery(db, _getWeightsQuery(), callback)
 }
 
-const getFoodRatings = callback => {
+const getFoodRatings = (db, callback) => {
   const query = `
     SELECT * FROM food
   `
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 }
 
-const getFoods = callback => {
+const getFoods = (db, callback) => {
   const query = `
     SELECT
       b.id AS brand_id,
@@ -176,10 +126,10 @@ const getFoods = callback => {
     ON b.id = p.brand_id
   `
 
-  sqlQuery(query, callback)
+  sqlQuery(db, query, callback)
 }
 
-const addFood = async (foodData, callback) => {
+const addFood = (db, foodData, callback) => {
   /* foodData schema
    {
       cat_id (int): Cat ID as in DB
@@ -207,39 +157,43 @@ const addFood = async (foodData, callback) => {
   const poolConnection = pool.promise() // Use this to keep to one connection
 
   if (foodData.brand.new_option) {
-    try {
-      [res, ] = await pool.promise().query(_addFoodBrandQuery(brand))
-      console.log(res)
-      brand_id = res.insertId
-    } catch (err) {
+    const [addBrandErr, addBrandRes] = db.syncQuery(_addFoodBrandQuery(brand))
+    //const [addBrandErr, addBrandRes] = await db.promisifiedQuery(_addFoodBrandQuery(brand))
+    if (addBrandErr) {
       console.log(err)
-      callback(true, {msg: `Error adding new brand ${brand} to DB`})
+      callback(true, {msg: `Error adding new brand ${brand} to DB`, err: addBrandErr})
+    } else {
+      console.log(addBrandRes)
+      brand_id = addBrandRes.insertId
     }
-  } 
+  }
 
   if (foodData.product.new_option) {
-    try {
-      [res, ] = await pool.promise().query(_addFoodProductQuery(brand_id, product))
+    const [addProductErr, addProductRes] = db.syncQuery(_addFoodProductQuery(brand_id, product))
+    // const [addProductErr, addProductRes] = await db.promisifiedQuery(_addFoodProductQuery(brand_id, product))
+    if (addProductErr) {
+      console.log(addProductErr)
+      callback(true, {msg: `Error adding new product ${product} to DB`, err: addProductErr})
+    } else {
       console.log(res)
       product_id = res.insertId
-    } catch (err) {
-      console.log(err)
-      callback(true, {msg: `Error adding new product ${product} to DB`})
     }
   }
 
-  try {
-    [res, ] = await pool.promise().query(_addFoodEntryQuery(
-      foodData.date, foodData.cat_id, brand_id, product_id, foodData.rating
-    ))
-  } catch (err) {
-    console.log(err)
-    callback(true, {msg: `Error adding new food entry to DB`})
-  }
+  sqlQuery(
+    db,
+    _addFoodEntryQuery(foodData.date, foodData.cat_id, brand_id, product_id, foodData.rating),
+    callback
+  )
 
-  // get new foods data
+  // TODO - get new food list
+
 }
 
+
+/*
+Helper functions for generating queries
+*/
 const _addFoodBrandQuery = brand => {
   const query = mysql.format(`
     INSERT INTO food_brand (
@@ -268,6 +222,29 @@ const _addFoodEntryQuery = (date, cat_id, brand_id, product_id, rating) => {
 
   return query
 }
+
+const _getWeightsQuery = (cat_id = null) => {
+    let query
+    
+    // Latest recorded weight (using id) grouped by (cat_id, weigh_date)
+    query = `
+      SELECT dw.* FROM daily_weight dw 
+      JOIN (
+        SELECT cat_id, MAX(id) AS max_id 
+        FROM daily_weight
+        GROUP BY cat_id, weigh_date
+      ) latest 
+      ON dw.cat_id=latest.cat_id AND dw.id=latest.max_id
+    `
+  
+    if (cat_id) {
+      query = query + mysql.format(' WHERE dw.cat_id=?', [cat_id])
+    }
+  
+    query = query + ' ORDER BY weigh_date DESC, cat_id ASC'
+    
+    return query
+  }
 
 module.exports = {
   addFood,
