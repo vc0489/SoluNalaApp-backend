@@ -1,6 +1,7 @@
 require('dotenv').config()
 const mysql = require('mysql2')
-
+// For connection pool
+// https://dev.to/gduple/pool-party-mysql-pool-connections-in-node-js-3om7
 // const poolConnection = pool.promise() // Use this to keep to one connection
 
 class MySqlPool {
@@ -16,27 +17,18 @@ class MySqlPool {
 
   query(sqlQuery, callback) {
     // Single SQL query
-    // [1] Get connection from pool
-    // [2] Run query
-    // [3] Return results
     this.pool.query(sqlQuery, (err, rows, fields) => {
         callback(err, rows, fields)
     })
-    
   }
 
   async syncQuery(sqlQuery) {
-    console.log(sqlQuery)
+    console.log('sqlQuery', sqlQuery)
+
     try {
-      const output = await this.pool.promise().query(sqlQuery)
-      console.log(output)
-    } catch (err) {
-      console.log('err:', err)
-    }
-    
-    try {
-      const [rows, fields] = await this.pool.promise().query(sqlQuery)
+      const [rows, fields] = await this.promisifiedQuery(sqlQuery)
       //const [rows, fields] = await this.promisifiedQuery(sqlQuery)
+      console.log([false, rows, fields])
       return [false, rows, fields]
     } catch (err) {
       return [err, null, null]
@@ -46,10 +38,6 @@ class MySqlPool {
   promisifiedQuery(sqlQuery) {
     return this.pool.promise().query(sqlQuery)
   }
-
-  //syncQueries(sqlQueries, callback) {
-  //  console.log('Not implmented yet.')
-  //}
 }
 
 module.exports.MySqlPool = MySqlPool
