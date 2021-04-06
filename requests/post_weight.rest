@@ -1,8 +1,0 @@
-POST http://localhost:3001/api/v1/weights HTTP/1.1
-content-type: application/json
-
-{
-  "cat_id": "1",
-  "grams": "4240",
-  "date": "2020-01-10"
-}

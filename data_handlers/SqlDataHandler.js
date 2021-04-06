@@ -1,4 +1,8 @@
 const mysql = require('mysql2') // For formatting queries
+// !Converted all queries to sync 
+// --> This will make it easier for service layer above to chain multiple queries
+// --> Otherwise will have callback hell!
+// https://codeburst.io/node-js-mysql-and-promises-4c3be599909b
 
 class SqlDataHandler {
   constructor(db) {
@@ -13,148 +17,139 @@ class SqlDataHandler {
     return this.db.syncQuery(query)
   }
 
-  getCats(callback) {
+  async getCats() {
     const query = 'SELECT * FROM cat ORDER BY birthdate ASC'
-    this._executeQuery(query, callback)
-  }
-  
-  getFoods(callback) {
-    const query = this._getFoodsQuery()
-    this._executeQuery(query, callback)
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows, fields]
   }
 
-  getFoodRatings(callback) {
-    const query = 'SELECT * FROM food'
-    this._executeQuery(query, callback)
+  async getFoodBrands() {
+    const query = 'SELECT id, brand FROM food_brand'
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
+  }
+
+  async getFoodProducts(brand_id = null) {
+    const query = this._getFoodProductsQuery(brand_id)
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
+  }
+
+  async getFoodRatings() {
+    const query = this._getFoodRatingsQuery()
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
   }
   
-  getNotes(cat_id, note_type_id, callback) {
+  async getNotes(cat_id, note_type_id) {
     const query = this._getNotesQuery(cat_id, note_type_id)
-    this._executeQuery(query, callback)
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
   }
 
-  getNoteTypes(callback) {
+  async getNoteTypes() {
     const query = 'SELECT * FROM note_type'
-    this._executeQuery(query, callback)
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
   }
 
-  getWeights(cat_id, callback) {
+  async getWeights(cat_id) {
     const query = this._getWeightsQuery(cat_id)
-    this._executeQuery(query, callback)
+    const [err, rows, fields] = await this._syncQuery(query)
+    return [err, rows]
   }
   
-  async insertFoodRating(foodData, callback) {
-    /* foodData schema
-     {
-        cat_id (int): Cat ID as in DB
-        brand (obj): { 
-          new_option (bool): Whether brand is new and hence not in DB)
-          value (string): Name of brand
-          option_id (int): Brand ID (if exists in DB)
-        }
-        date: Date of entry
-        food (obj): { 
-          new_option (bool): Whether food is new and hence not in DB)
-          value (string): Name of food
-          option_id (int): Food ID (if exists in DB)
-        }
-        rating: Rating given to food (0-5). 0 should be interpreted as no rating (null)
-      }
-    */
-    const brand = foodData.brand.value
-    const product = foodData.product.value
-  
-    let brand_id = foodData.brand.option_id
-    let product_id = foodData.product.option_id
-
-    if (foodData.brand.new_option) {
-      const [addBrandErr, addBrandRes] = await this._syncQuery(this._insertFoodBrandQuery(brand))
-      if (addBrandErr) {
-        console.log(err)
-        callback(true, {msg: `Error adding new brand ${brand} to DB`, err: addBrandErr})
-      } else {
-        console.log(addBrandRes)
-        brand_id = addBrandRes.insertId
-      }
-    }
-  
-    if (foodData.product.new_option) {
-      const [addProductErr, addProductRes] = await this._syncQuery(this._insertFoodProductQuery(brand_id, product))
-      // const [addProductErr, addProductRes] = await db.promisifiedQuery(_addFoodProductQuery(brand_id, product))
-      if (addProductErr) {
-        console.log(addProductErr)
-        callback(true, {msg: `Error adding new product ${product} to DB`, err: addProductErr})
-      } else {
-        console.log(res)
-        product_id = res.insertId
-      }
-    }
-  
-    this._executeQuery(
-      this._insertFoodRatingQuery(
-        foodData.date, foodData.cat_id, brand_id, product_id, foodData.rating
-      ),
-      callback
-    )
+  async insertFoodBrand(brand) {
+    // Return brand ID
+    const query = this._insertFoodBrandQuery(brand)
+    const [insBrandErr, insBrandRes] = await this._syncQuery(query)
+    return [insBrandErr, insBrandRes?.insertId]
   }
 
-  insertNotes(json_data, callback) {
-    // cat_id, note_type_id, date, time, content
-    // https://stackoverflow.com/questions/8899802/how-do-i-do-a-bulk-insert-in-mysql-using-node-js
-    // 
-    const insert_array = json_data.map(entry => {
-      return [entry.cat_id, entry.note_type_id, entry.date, entry.time, entry.content]
-    })
-
-    let query = mysql.format(`
-      INSERT INTO note (
-        cat_id,
-        note_type_id,
-        note_date,
-        note_time,
-        content
-      ) VALUES ?`,
-      [insert_array]
-    )
-
-    this._executeQuery(query, callback)
+  async insertFoodProduct(brand_id, product) {
+    // Return product ID
+    const query = this._insertFoodProductQuery(brand_id, product)
+    const [insProdErr, insProdRes] = await this._syncQuery(query)
+    console.log(query)
+    console.log(insProdErr)
+    return [insProdErr, insProdRes?.insertId]
+  }
+  
+  async insertFoodRating(date, cat_id, product_id, grams, rating) {
+    const query = this._insertFoodRatingQuery(date, cat_id, product_id, grams, rating)
+    const [insRatingErr, insRatingRes] = await this._syncQuery(query)
+    //console.log('SqlDataHandler.insertFoodRating', insRatingErr, insRatingRes)
+    return [insRatingErr, insRatingRes]
+  }
+  
+  async insertNotes(insert_data) {
+    const query = this._insertNotesQuery(insert_data)
+    const [err, res] = await this._syncQuery(query)
+    console.log(err, res)
+    return [err, res?.insertId]
   }
 
-  async insertWeights(cat_id, weightsData, callback) {
+  async insertWeights(weightsData) {
     // weightsData - array of weight entries {cat_id, grams, weigh_date}
-      
+    
     const insert_values = weightsData.map(
       data => {
-        return (`(${cat_id},${data.grams},'${data.weigh_date}')`)
+        return (`(${data.cat_id},${data.grams},'${data.date}')`)
       }
     )
+    
+    if (insert_values.length === 0) {
+      return [{'msg': 'No valid weight data.'}, null]
+    }
 
+    console.log('insert_values', insert_values)
     let query = insert_values.join(',')
     query = 'INSERT INTO daily_weight (cat_id,grams,weigh_date) VALUES ' + query
     
-    const [insertErr] = await this._syncQuery(query)
-    //const [insertErr] = await db.promisifiedQuery(query)
-    if (insertErr) {
-      console.log(insertErr)
-      callback(true, {msg: "Error inserting weight(s) into DB", err: insertErr})
-      return
-    }
-    this._executeQuery(this._getWeightsQuery(), callback)
+    const [insertErr, insertRes] = await this._syncQuery(query)
+    console.log('insertWeights.insertRes', insertRes)
+    return [insertErr, insertRes?.insertId]
   }
 
   // Query generation helper methods/attributes
 
-  _getFoodsQuery() {
-    return `
+  _getFoodProductsQuery(brand_id = null) {
+    let query = `
       SELECT
         b.id AS brand_id,
-        b.brand AS brand,
+        b.brand,
         p.id AS product_id,
-        p.product AS product
+        p.product
       FROM food_brand b
       LEFT JOIN food_product p
       ON b.id = p.brand_id
     `
+    if (brand_id) {
+      query += mysql.format(' WHERE b.id=?', [brand_id])
+    }
+    return query
+  }
+
+  _getFoodRatingsQuery(cat_id) {
+    let query = `
+      SELECT
+        f.id,
+        f.cat_id,
+        b.id AS brand_id,
+        b.brand,
+        p.id AS product_id,
+        p.product,
+        f.rating_date AS date,
+        f.grams,
+        f.rating
+      FROM food_brand b
+      JOIN food_product p ON b.id = p.brand_id
+      JOIN food_rating f ON p.id = f.product_id
+    `
+    if (cat_id) {
+      query += mysql.format(' WHERE f.cat_id=?', [cat_id])
+    }
+    return query
   }
 
   _getNotesQuery(cat_id, note_type_id) {
@@ -173,8 +168,9 @@ class SqlDataHandler {
       WHERE 1=1
     `
 
-    if (cat_id) query += mysql.format(' AND cat_id=?', cat_id)
-    if (note_type_id) query += mysql.format(' AND note_type_id=?', note_type_id)
+    console.log(cat_id, note_type_id)
+    if (cat_id) query += mysql.format(' AND cat_id=?', [cat_id])
+    if (note_type_id) query += mysql.format(' AND note_type_id=?', [note_type_id])
 
     return query
   }
@@ -201,7 +197,7 @@ class SqlDataHandler {
     const query = mysql.format(`
       INSERT INTO food_brand (
         brand
-      )  VALUES (?)
+      ) VALUES (?)
     `, brand)
   
     return query
@@ -217,18 +213,38 @@ class SqlDataHandler {
     return query
   }
   
-  _insertFoodRatingQuery(date, cat_id, brand_id, product_id, rating) {
+  _insertFoodRatingQuery(date, cat_id, product_id, grams, rating) {
     const query = mysql.format(`
-      INSERT INTO food (
-        cat_id, food_date, brand_id, product_id, rating
+      INSERT INTO food_rating (
+        cat_id, rating_date, product_id, grams, rating
       ) VALUES (?,?,?,?,?)
-    `, [cat_id, date, brand_id, product_id, rating] )
+    `, [cat_id, date, product_id, grams, rating] )
   
     return query
   }
+
+  _insertNotesQuery(insert_data) {
+    const insert_array = insert_data.map(entry => {
+      return [entry.cat_id, entry.note_type_id, entry.date, entry.time, entry.content]
+    })
+
+    const query = mysql.format(`
+      INSERT INTO note (
+        cat_id,
+        note_type_id,
+        note_date,
+        note_time,
+        content
+      ) VALUES ?`,
+      [insert_array]
+    )
+    return query
+  }
+
+  _insertWeightsQuery() {
+    return ''
+  }
 }
 
-module.exports = {
-  SqlDataHandler
-}
+module.exports = SqlDataHandler
 

@@ -28,7 +28,7 @@ class MySqlPool {
     try {
       const [rows, fields] = await this.promisifiedQuery(sqlQuery)
       //const [rows, fields] = await this.promisifiedQuery(sqlQuery)
-      console.log([false, rows, fields])
+      //console.log([false, rows, fields])
       return [false, rows, fields]
     } catch (err) {
       return [err, null, null]
@@ -40,5 +40,4 @@ class MySqlPool {
   }
 }
 
-module.exports.MySqlPool = MySqlPool
-
+module.exports = MySqlPool

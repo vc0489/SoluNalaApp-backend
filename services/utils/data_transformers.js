@@ -14,9 +14,8 @@ const transformCats = (rows) => {
 }
 
 const transformWeights = rows => {
-  if (!rows) {
-    return []
-  }
+  if (!rows) return []
+  
   return rows.map(row => {
     return ({
       cat_id: row.cat_id,
@@ -35,13 +34,20 @@ const transformNotes = rows => {
   })
 }
 
+const transformNoteTypes = rows => {
+  return rows.map(row => {
+    return ({
+      id: row.id,
+      description: row.type_description,
+    })
+  })
+}
+
 const transformFoods = rows => {
-  console.log('In transform foods')
   let transformedFoods = {}
   let foodObj
   let brandMap = {}
   rows.forEach(item => {
-    //console.log(item)
     foodObj = {
       'product_id': item.product_id,
       'product': item.product
@@ -51,18 +57,35 @@ const transformFoods = rows => {
       transformedFoods[item.brand].push(foodObj)
     } else {
       brandMap[item.brand] = item.brand_id
-      transformedFoods[item.brand] = [foodObj]
+      if (foodObj.product === null) {
+        transformedFoods[item.brand] = []
+      } else {
+        transformedFoods[item.brand] = [foodObj]
+      }
     }
   })
 
   //console.log('brandMap:', brandMap)
-  console.log('transformFoods output:', {'brand_to_id_map': brandMap, 'foods': transformedFoods})
+  //console.log('transformFoods output:', {'brand_to_id_map': brandMap, 'foods': transformedFoods})
   return {'brand_to_id_map': brandMap, 'foods': transformedFoods}
+}
+
+const transformFoodRatings = rows => {
+  if (!rows) return []
+
+  return rows.map(row => {
+    return ({
+      ...row,
+      date: format_datetime_to_date(row.date)
+    })
+  })
 }
 
 module.exports = {
   transformCats,
   transformFoods,
   transformNotes,
+  transformNoteTypes,
+  transformFoodRatings,
   transformWeights
 }

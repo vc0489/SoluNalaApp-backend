@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS daily_weight;
 DROP TABLE IF EXISTS notes;
 DROP TABLE IF EXISTS note;
 DROP TABLE IF EXISTS note_type;
-
+DROP TABLE IF EXISTS food_rating;
 CREATE TABLE cat (
     id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
     cat_name VARCHAR(10) NOT NULL,
@@ -128,22 +128,28 @@ INSERT INTO food_product (brand_id, product) VALUES
 ( 2, 'Crayfish - Chunks in Jelly'),
 ( 3, 'Skipjack Tuna in Jelly');
 
-CREATE TABLE food (
-    id MEDIUMINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    cat_id TINYINT UNSIGNED NOT NULL,
-    food_date DATE NOT NULL,
-    brand_id SMALLINT UNSIGNED NOT NULL,
-    product_id SMALLINT UNSIGNED NOT NULL,
-    rating TINYINT UNSIGNED,
-    last_updated DATETIME DEFAULT NOW(),
-    FOREIGN KEY (cat_id) REFERENCES cat(id),
-    FOREIGN KEY (brand_id) REFERENCES food_brand(id),
-    FOREIGN KEY (product_id) REFERENCES food_product(id)
-)
 
 
 
+CREATE TABLE food_rating (
+  id INT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  cat_id TINYINT UNSIGNED NOT NULL,
+  rating_date DATE NOT NULL,
+  product_id SMALLINT UNSIGNED NOT NULL,
+  grams SMALLINT UNSIGNED,
+  rating TINYINT UNSIGNED,
+  last_updated DATETIME DEFAULT NOW(),
+  FOREIGN KEY (cat_id) REFERENCES cat(id),
+  FOREIGN KEY (product_id) REFERENCES food_product(id)
+);
 
+INSERT INTO food_rating (cat_id, rating_date, product_id, grams, rating) VALUES
+( 1, '2020-03-01', 1, 120, 4 ),
+( 1, '2020-03-02', 2, 110, 3 ),
+( 1, '2020-03-03', 3, NULL, 2 ),
+( 1, '2020-03-04', 4, 125, NULL ),
+( 1, '2020-03-05', 5, NULL, NULL ),
+( 2, '2020-03-02', 9, 150, 5 );
 
 
 

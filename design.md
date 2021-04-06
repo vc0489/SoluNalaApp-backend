@@ -1,6 +1,5 @@
 # Backend design
 
-
 ## ``app.js``
 This is the main app file. 
 
@@ -9,7 +8,6 @@ This is the main app file.
 - Inject routers with DB object and add to app
 - Add other middleware
 - Activate app
-
 
 ## ``get_db.js``
 Inject MySQL pool connector into SqlDataHandler object and return as DB object.

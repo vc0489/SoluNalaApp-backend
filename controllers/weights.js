@@ -1,5 +1,5 @@
 const weightsRouter = require('express').Router()
-const transformers = require('./utils/data_transformers')
+let weightService
 
 // For CSV upload handling
 const csv = require('csvtojson')
@@ -10,22 +10,38 @@ const memUpload = multer({
   limit: { fileSize: 30 * 1024 * 2014, files: 1}
 })
 
-let db_obj
-
+/* Weight data schema:
+{
+  [
+    {
+      cat_id: int
+      grams: int,
+      date: date,
+    },
+    {
+      cat_id: int
+      grams: int,
+      date: date,
+    },
+    {
+      ...
+    }
+  ]
+}
+*/
 // TODO - order by increasing date
 // Latest entry per cat+date
-weightsRouter.get('/entries', (req, res, next) => {
+weightsRouter.get('/', (req, res, next) => {
   const cat_id = req.query.cat_id || null
   console.log('cat_id=' + cat_id)
   
-  db_obj.getWeights(cat_id, (err, rows, fields) => {
+  weightService.getWeights(cat_id, (err, data) => {
     if (err) {
       res.status(500).json({
         error: 'Internal error when calling db.getWeights'
       })
     }
-    //console.log(rows)
-    res.json(transformers.transformWeights(rows))
+    res.json(data)
   })
 })
 
@@ -38,53 +54,44 @@ weightsRouter.post('/file', memUpload.single('csvFile'), async (req, res) => {
 
   const weightDataToInsert = weightData.map(data => {
     return ({
-      grams: data.Weight,
-      weigh_date: data.Date
+      cat_id,
+      grams: data.Weight || data.weight,
+      date: data.Date || data.date
     })
   })
 
-  db_obj.insertWeights(cat_id, weightDataToInsert, (err, db_res) => {
+  weightService.insertWeights(weightDataToInsert, (err, dbRes) => {
     if (err) {
       res.status(500).json({
-        error: 'Internal error when calling db.getWeights - ' + db_res
+        error: 'Internal error when calling db.getWeights - ' + dbRes
       })
     }
-
-    res.json(transformers.transformWeights(db_res))
+    res.json(dbRes)
   })
-
 })
 
-weightsRouter.post('/entries', (req, res, next) => {
+weightsRouter.post('/', (req, res, next) => {
   const body = req.body
-  
   console.log(body)
-  if (!body.cat_id || !body.grams || !body.date) {
-    return res.status(400).json({
-      error: 'cat_id or grams or date missing'
-    })
-  }
   
-  //TODO - use this to generate query
-  const toInsert = [{
-    grams: body.grams,
-    weigh_date: body.date,
-  }]
+  //res.status(500).json({error: 'testing error handing in axios'})
+  //return
 
-  db_obj.insertWeights(body.cat_id, toInsert, (err, db_res) => {
+  weightService.insertWeights(body, (err, dbRes) => {
     if (err) {
       res.status(500).json({
-        error: 'Internal error when calling db.getWeights - ' + db_res
+        error: 'Internal error when calling db.getWeights - ' + dbRes
       })
     }
-    //console.log(`In POST /api/v1/weights: db_res=${JSON.stringify(transformers.transformWeights(db_res))}`)
-    res.json(transformers.transformWeights(db_res))
+    res.json(dbRes)
   })
-  
+
+  // TODO - return new weights if requested? Or maybe just send new GET request to API afterwards.
+  //res.json(transformers.transformWeights(db_res))
+
 })
 
-
-module.exports = (_db_obj) => {
-  db_obj = _db_obj
+module.exports = _weightService => {
+  weightService = _weightService
   return weightsRouter
 }

@@ -1,7 +1,7 @@
 // Pattern based on https://stackoverflow.com/questions/38747875/how-to-share-connection-pool-between-modules-in-node-js
 
-const { MySqlPool } = require('./db_connectors/MySqlPool')
-const db = require('./data_handlers/SqlDataHandler')
+const MySqlPool = require('./db_connectors/MySqlPool')
+const SqlDataHandler = require('./data_handlers/SqlDataHandler')
 
 let pool_obj
 
@@ -13,7 +13,7 @@ module.exports = {
       return pool_obj
     } else {
       const pool = new MySqlPool()
-      pool_obj = new db.SqlDataHandler(pool)
+      pool_obj = new SqlDataHandler(pool)
       console.log('Creating new pool')
       return pool_obj
     }
