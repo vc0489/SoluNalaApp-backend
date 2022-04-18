@@ -7,7 +7,7 @@ userRouter.post(
   async (req, res, next) => {
     res.json({
       "response_type": "in_channel",
-      "text": "Received request."
+      "text": JSON.stringify(req.body),
   })
   }
 )
