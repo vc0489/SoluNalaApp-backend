@@ -3,6 +3,12 @@ let userService
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 
 userRouter.get(
+  '/slacktest/',
+  async (req, res, next) => {
+    res.json({'key': 'value'})
+  }
+)
+userRouter.get(
   '/test/',
   async (req, res, next) => {
     userService.testQuery(data => {
