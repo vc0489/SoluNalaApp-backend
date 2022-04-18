@@ -7,7 +7,10 @@ userRouter.post(
   async (req, res, next) => {
     res.json({
       "response_type": "in_channel",
-      "text": JSON.stringify(req.body),
+      "text": JSON.stringify({
+        "headeers": req.headers,
+        "body": req.body
+      }),
   })
   }
 )
