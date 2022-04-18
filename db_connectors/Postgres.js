@@ -31,7 +31,8 @@ class PostgresPool {
       password: process.env.COCKROACHDB_PASSWORD,
       ssl: {
         rejectUnauthorized: false,
-        ca: fs.readFileSync(process.env.HOME + '/.postgresql/root.crt').toString(),
+        // ca: fs.readFileSync(process.env.HOME + '/.postgresql/root.crt').toString(),
+        ca: fs.readFileSync('certs/root.crt').toString(),
       },
       // sslmode="verify-full",
       // sslrootcert="/Users/vhc08/.postgresql/root.crt",
