@@ -2,7 +2,7 @@ const userRouter = require('express').Router()
 let userService
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 
-userRouter.get(
+userRouter.post(
   '/slacktest/',
   async (req, res, next) => {
     res.json({
