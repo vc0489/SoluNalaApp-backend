@@ -1,14 +1,26 @@
 const weightsRouter = require('express').Router()
+const checkUser = require('./../middleware/checkUser')
+const {
+  createObjectOptionalFields,
+  ensureReqFieldNotEmpty,
+  requireFieldsNotNull,
+  requireFieldsArrayNotNull,
+} = require('../middleware/bodyFieldValidator')
+const csvBufferToJson = require('./../middleware/csvBufferToJson')
+
 let weightService
+const CSV_WEIGHT_DATA_FIELD = 'weight_data'
 
 // For CSV upload handling
 const csv = require('csvtojson')
 const multer = require('multer')
-const memoryStorage = multer.memoryStorage()
+//const memoryStorage = multer.memoryStorage()
 const memUpload = multer({
-  storage: memoryStorage,
+  storage: multer.memoryStorage(),
   limit: { fileSize: 30 * 1024 * 2014, files: 1}
 })
+
+weightsRouter.use(checkUser)
 
 /* Weight data schema:
 {
@@ -29,67 +41,122 @@ const memUpload = multer({
   ]
 }
 */
+
+// Get all weights of cats belonging to user
 // TODO - order by increasing date
-// Latest entry per cat+date
 weightsRouter.get('/', (req, res, next) => {
-  const cat_id = req.query.cat_id || null
-  console.log('cat_id=' + cat_id)
-  
-  weightService.getWeights(cat_id, (err, data) => {
-    if (err) {
-      res.status(500).json({
-        error: 'Internal error when calling db.getWeights'
-      })
-    }
-    res.json(data)
+  weightService.getWeights(req.user_id, weights => {
+    res.json(weights)
+  }).catch(e => {
+    next(e)
   })
 })
 
-weightsRouter.post('/file', memUpload.single('csvFile'), async (req, res) => {
-  console.log(req.file.buffer)
-  const cat_id = req.body.catID
-  //console.log(req.files)
-  const weightData = await csv().fromString(req.file.buffer.toString())
-  console.log('cat_id:', cat_id, '; weightData:', weightData)
-
-  const weightDataToInsert = weightData.map(data => {
-    return ({
-      cat_id,
-      grams: data.Weight || data.weight,
-      date: data.Date || data.date
+weightsRouter.post(
+  '/',
+  requireFieldsNotNull(['cat_id', 'date', 'grams']),
+  async (req, res, next) => {
+    weightService.insertWeight(req.user_id, req.body, insWeight => {
+      res.json(insWeight)
+    }).catch(e => {
+      next(e)
     })
-  })
+  }
+)
 
-  weightService.insertWeights(weightDataToInsert, (err, dbRes) => {
-    if (err) {
-      res.status(500).json({
-        error: 'Internal error when calling db.getWeights - ' + dbRes
+// TODO - requireFieldArrayNotNull, allow check on field of body rather than just body
+weightsRouter.post(
+  '/file/',
+  memUpload.single('csvFile'), // Load CSV data into req.file (cat_id is field of form data))
+  requireFieldsNotNull(['cat_id']),
+  csvBufferToJson(CSV_WEIGHT_DATA_FIELD),
+  requireFieldsArrayNotNull(['Date', 'Weight'], CSV_WEIGHT_DATA_FIELD), // Validate weight data
+  async (req, res, next) => {
+    weightService.insertWeightsFromFile(
+      req.user_id,
+      req.body.cat_id,
+      req.body[CSV_WEIGHT_DATA_FIELD],
+      insWeights => {
+        res.json(insWeights)
+      }
+    ).catch(e => {
+      next(e)
+    })
+  }
+)
+
+// Expect array of json objects
+// Filtering (require cat_id, grams, date) currently done at service layer
+weightsRouter.post(
+  '/bulk/',
+  requireFieldsArrayNotNull(['cat_id', 'date', 'grams']),
+  async (req, res, next) => {
+    weightService.insertWeights(req.user_id, req.body, insWeights => {
+      res.json(insWeights)
+    }).catch(e => {
+      next(e)
+    })
+  }
+)
+
+weightsRouter.put(
+  '/bulk/',
+  requireFieldsArrayNotNull(['cat_id', 'date', 'grams']),
+  async (req, res, next) => {
+    weightService.upsertWeights(req.user_id, req.body, (deletedIds, insWeights) => {
+      res.json({
+        DeletedIds: deletedIds,
+        InsertedWeights: insWeights
       })
-    }
-    res.json(dbRes)
-  })
-})
+    }).catch(e => {
+      next(e)
+    })
+  }
+)
 
-weightsRouter.post('/', (req, res, next) => {
-  const body = req.body
-  console.log(body)
-  
-  //res.status(500).json({error: 'testing error handing in axios'})
-  //return
+weightsRouter.put(
+  '/file/',
+  memUpload.single('csvFile'), // Load CSV data into req.file (cat_id is field of form data))
+  requireFieldsNotNull(['cat_id']),
+  csvBufferToJson(CSV_WEIGHT_DATA_FIELD),
+  requireFieldsArrayNotNull(['Date', 'Weight'], CSV_WEIGHT_DATA_FIELD), // Validate weight data
+  async (req, res, next) => {
+    weightService.insertWeightsFromFile(
+      req.user_id,
+      req.body.cat_id,
+      req.body[CSV_WEIGHT_DATA_FIELD],
+      (deletedIds, insWeights) => {
+        res.json({
+          DeletedIds: deletedIds,
+          InsertedWeights: insWeights
+        })
+      }
+    ).catch(e => { next(e) })
+  }
+)
 
-  weightService.insertWeights(body, (err, dbRes) => {
-    if (err) {
-      res.status(500).json({
-        error: 'Internal error when calling db.getWeights - ' + dbRes
-      })
-    }
-    res.json(dbRes)
-  })
+weightsRouter.patch(
+  '/:id/',
+  createObjectOptionalFields(['cat_id', 'date', 'grams'], 'updateObj'),
+  ensureReqFieldNotEmpty('updateObj'),
+  async (req, res, next) => {
+    weightService.updateWeight(req.user_id, req.params.id, req.updateObj, updatedWeight => {
+      res.json(updatedWeight)
+    }).catch(e => { next(e) })
+  }
+)
 
-  // TODO - return new weights if requested? Or maybe just send new GET request to API afterwards.
-  //res.json(transformers.transformWeights(db_res))
+weightsRouter.delete(
+  '/:id/',
+  async (req, res, next) => {
+    weightService.deleteWeight(req.user_id, req.params.id, () => {
+      res.sendStatus(204)
+    }).catch(e => {
+      next(e)
+    })
+  }
+)
 
-})
 
 module.exports = _weightService => {
   weightService = _weightService

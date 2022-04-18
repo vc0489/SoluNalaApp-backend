@@ -1,6 +1,11 @@
 node_modules
-test.js
+mysql_test_old.js
 .env
-create_table.sql
+create_tables.sql
 uploads
 requests
+db.js
+design.md
+test_sql_script.sql
+.python-version
+setup_scripts

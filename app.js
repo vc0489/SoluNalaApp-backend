@@ -1,37 +1,30 @@
+console.log(process.argv)
+const db_schema = process.env.DB_SCHEMA
+console.log(`DB Schema=${db_schema}`)
+const node_env = process.env.NODE_ENV
+console.log(`NODE_ENV=${node_env}`)
 const express = require('express')
+const errorTypeToCode = require('./controllers/utils/errorCodes')
 const app = express()
 app.use(express.json())
 
 const cors = require('cors')
 app.use(cors())
 
-const { catsRouter, foodsRouter, weightsRouter, notesRouter } = require('./get_routers')
-// Move below to setup script
-// Data accessor
-/*
-const dataAccessor = require('./get_data_accessor').getPool() // data accessor object
+const requestLogger = require('./middleware/requestLogger')
+app.use(requestLogger)
 
-const CatService = require('./services/cats')
-const FoodService = require('./services/foods')
-const NoteService = require('./services/notes')
-const WeightService = require('./services/weights')
+const { getUser, logUser} = require('./middleware/getUser')
+app.use(getUser)
+app.use(logUser)
 
-const catService = new CatService(dataAccessor)
-const foodService = new FoodService(dataAccessor)
-const noteService = new NoteService(dataAccessor)
-const weightService = new WeightService(dataAccessor)
-
-// Get routers
-//const appService = require('./services/main')(dataAccessor)
-const catsRouter = require('./controllers/cats')(catService)
-const foodsRouter = require('./controllers/foods')(foodService)
-const weightsRouter = require('./controllers/weights')(weightService)
-const notesRouter = require('./controllers/notes')(noteService)
-*/
-//console.log(weightService)
+const {
+  dataAccessor, usersRouter, catsRouter, foodsRouter, weightsRouter, notesRouter
+} = require('./get_routers')(db_schema)
 
 // Add routers to app
 const baseUrl = '/api/v1'
+app.use(`${baseUrl}/users`, usersRouter)
 app.use(`${baseUrl}/cats`, catsRouter)
 app.use(`${baseUrl}/foods`, foodsRouter)
 app.use(`${baseUrl}/weights`, weightsRouter)
@@ -43,32 +36,62 @@ app.get('/', (request, response) => {
 })
 
 const unknownEndPoint = (req, res) => {
-  res.status(404).send({ error: 'unknown endpoint' })
+  res.status(404).send({ msg: 'Unknown endpoint' })
 }
 app.use(unknownEndPoint)
 
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+// console.log(`PORT=${process.env.PORT}`)
+// const PORT = process.env.PORT || 3001
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`)
+// })
 
-// TODO - middleware to handle errors, loggin etc. 
-/* 
-// Handle error
+// TODO - middleware to handle errors, loggin etc.
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.log('---errorHandler---')
+  console.log('error:  ', error)
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'MongoError') {
-    return response.status(400).send({ error: 'name already exists in phonebook' })
-  } else if (error.name === 'ValidationError') {
-    return response.status(400).send({ error: error.message })
+  console.log('error.error_type:  ', error.error_type)
+  console.log('error.msg:  ', error.msg)
+  console.log('error.err:  ', error.err)
+  if ('error_type' in error) {
+    let error_code
+    if ('error_code' in error) {
+      error_code = error.error_code
+    } else {
+      error_code = errorTypeToCode(error.error_type)
+    }
+
+    let responseJson = {msg: error.msg}
+    if (error.data) {
+      responseJson = {...error.data, ...responseJson}
+    }
+    return response.status(error_code).json(responseJson)
+  } else {
+    return response.status(500).json({
+      msg: 'Unknown server error'
+    })
   }
+  /*
+  if (error.error_type === 'JsonWebTokenError') {
+    return response.status(401).json({
+      msg: error.msg
+    })
+  } else if (error.error_type === 'UnauthenticatedUser') {
+    return response.status(401).json({
+      msg: error.msg
+    })
+  }
+  */
 
-  next(error)
+
+  //next(error)
 }
 
 app.use(errorHandler)
-*/
+
+module.exports = {
+  app,
+  dataAccessor,
+}
 
