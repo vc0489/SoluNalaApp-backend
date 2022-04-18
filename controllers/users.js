@@ -5,7 +5,10 @@ const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 userRouter.get(
   '/slacktest/',
   async (req, res, next) => {
-    res.json({'key': 'value'})
+    res.json({
+      "response_type": "in_channel",
+      "text": "Received request."
+  })
   }
 )
 userRouter.get(
