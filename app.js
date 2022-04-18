@@ -8,6 +8,10 @@ const errorTypeToCode = require('./controllers/utils/errorCodes')
 const app = express()
 app.use(express.json())
 
+const bodyParser = require('body-parser')
+app.use(bodyParser.json()) // support json encoded bodies
+app.use(bodyParser.urlencoded({ extended: true })) // support encoded bodies
+
 const cors = require('cors')
 app.use(cors())
 
