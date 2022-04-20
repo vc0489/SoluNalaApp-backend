@@ -19,12 +19,14 @@ slackRouter.post(
         }
       }
     ).then(
-      slack_res => res.json({
-        email: slack_res.data.user.profile.email,
-        headers: req.headers,
-        body: req.body,
-
-      })
+      slack_res => {
+        const email = slack_res.data.user.profile.email
+        return res.json({
+          email: email,
+          headers: req.headers,
+          body: req.body,
+        })
+      }
     )
 
     // axios.get(
