@@ -8,7 +8,7 @@ userRouter.post(
     res.json({
       "response_type": "in_channel",
       "text": JSON.stringify({
-        "headeers": req.headers,
+        "headers": req.headers,
         "body": req.body
       }),
   })
