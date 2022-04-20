@@ -15,7 +15,7 @@ slackRouter.post(
           user: req.body.user_id
         },
         headers: {
-          Authorization: 'Bearer xoxb-530987712531-3398917539462-QDAUoVctBlVLIMk3yq0hmUlG'
+          Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
         }
       }
     ).then(
