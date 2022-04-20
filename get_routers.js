@@ -8,7 +8,7 @@ const CatService = require('./services/cats')
 const FoodService = require('./services/foods')
 const NoteService = require('./services/notes')
 const WeightService = require('./services/weights')
-
+// const SlackService = require('./services/')
 
 
 module.exports = schema => {
@@ -28,6 +28,7 @@ module.exports = schema => {
   const foodsRouter = require('./controllers/foods')(foodService)
   const weightsRouter = require('./controllers/weights')(weightService)
   const notesRouter = require('./controllers/notes')(noteService)
+  const slackRouter = require('./controllers/slack')()
 
   return {
     dataAccessor,
@@ -35,6 +36,7 @@ module.exports = schema => {
     catsRouter,
     foodsRouter,
     weightsRouter,
-    notesRouter
+    notesRouter,
+    slackRouter,
   }
 }

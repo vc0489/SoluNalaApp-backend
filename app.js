@@ -23,7 +23,13 @@ app.use(getUser)
 app.use(logUser)
 
 const {
-  dataAccessor, usersRouter, catsRouter, foodsRouter, weightsRouter, notesRouter
+  dataAccessor,
+  usersRouter,
+  catsRouter,
+  foodsRouter,
+  weightsRouter,
+  notesRouter,
+  slackRouter,
 } = require('./get_routers')(db_schema)
 
 // Add routers to app
@@ -33,6 +39,7 @@ app.use(`${baseUrl}/cats`, catsRouter)
 app.use(`${baseUrl}/foods`, foodsRouter)
 app.use(`${baseUrl}/weights`, weightsRouter)
 app.use(`${baseUrl}/notes`, notesRouter)
+app.use(`${baseUrl}/slack`, slackRouter)
 
 // Easter egg :P
 app.get('/', (request, response) => {
