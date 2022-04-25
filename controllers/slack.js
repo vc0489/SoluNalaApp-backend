@@ -21,8 +21,12 @@ slackRouter.post(
     ).then(
       slack_res => {
         const email = slack_res.data.user.profile.email
+        // Use email to load user
+        // Get cat ID from cat name and user
+        // Use cat ID, date and grams to add weight entry
         return res.json({
           email: email,
+          text: req.body.text,
           headers: req.headers,
           body: req.body,
         })

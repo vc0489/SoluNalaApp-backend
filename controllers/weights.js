@@ -87,6 +87,7 @@ weightsRouter.post(
 
 // Expect array of json objects
 // Filtering (require cat_id, grams, date) currently done at service layer
+// VC TODO - return error if duplicate (cat, date)
 weightsRouter.post(
   '/bulk/',
   requireFieldsArrayNotNull(['cat_id', 'date', 'grams']),
@@ -121,7 +122,7 @@ weightsRouter.put(
   csvBufferToJson(CSV_WEIGHT_DATA_FIELD),
   requireFieldsArrayNotNull(['Date', 'Weight'], CSV_WEIGHT_DATA_FIELD), // Validate weight data
   async (req, res, next) => {
-    weightService.insertWeightsFromFile(
+    weightService.upsertWeightsFromFile(
       req.user_id,
       req.body.cat_id,
       req.body[CSV_WEIGHT_DATA_FIELD],

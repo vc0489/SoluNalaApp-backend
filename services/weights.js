@@ -23,6 +23,14 @@ class WeightService extends BaseService{
       'Cannot insert weight data for cat which do not belong to user'
     )
 
+    const existingWeight = await this._getWeightForCatAndDate(insertData.cat_id, insertData.date)
+    if (existingWeight.length) {
+      throw new errors.DuplicateDataError(
+        'Weight for cat and date already exists',
+        null
+      )
+    }
+
     const insertedWeights = await this._insertWeights([insertData])
     callback(insertedWeights[0])
   }
@@ -118,6 +126,19 @@ class WeightService extends BaseService{
   //----------------------//
   //--- Helper methods ---//
   //----------------------//
+  async _getWeightForCatAndDate(catId, date) {
+    const [getErr, existingWeight] = await this.dataAccessor.getWeightsOfCatDatePairs([[catId, date]])
+
+    if (getErr) {
+      throw new errors.DatabaseError(
+        'Error getting weights from the DB',
+        getErr
+      )
+    }
+
+    return existingWeight
+  }
+
   async _upsertWeights(weights) {
     const [upsertErr, deletedIds, insertWeightIds] = await this.dataAccessor.upsertWeights(weights)
 

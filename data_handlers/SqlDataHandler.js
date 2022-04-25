@@ -773,7 +773,7 @@ class SqlDataHandler {
 
     const query = `
       SELECT * FROM weight WHERE
-        (cat_id, date)
+        (cat_id, weigh_date)
       IN
         (?)
     `
