@@ -47,14 +47,14 @@ slackRouter.post(
             },
             {
               type: 'section',
-              text: `headers: ${req.headers}`
+              text: `headers: ${JSON.stringify(req.headers)}`
             },
             {
               type: 'divider',
             },
             {
               type: 'section',
-              text: `body: ${req.body}`
+              text: `body: ${JSON.stringify(req.body)}`
             },
           ]
         })
