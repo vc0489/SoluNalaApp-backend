@@ -42,20 +42,20 @@ slackRouter.post(
               type: 'section',
               text: `text: ${req.body.text}`
             },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: `headers: ${JSON.stringify(req.headers)}`
-            },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: `body: ${JSON.stringify(req.body)}`
-            },
+            // {
+            //   type: 'divider',
+            // },
+            // {
+            //   type: 'section',
+            //   text: `headers: ${JSON.stringify(req.headers)}`
+            // },
+            // {
+            //   type: 'divider',
+            // },
+            // {
+            //   type: 'section',
+            //   text: `body: ${JSON.stringify(req.body)}`
+            // },
           ]
         })
       }
