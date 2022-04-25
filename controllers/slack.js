@@ -33,29 +33,41 @@ slackRouter.post(
           blocks: [
             {
               type: 'section',
-              text: `email: ${email}`
+              text: {
+                type: 'mrkdwn',
+                text: `email: ${email}`
+              }
             },
             {
               type: 'divider',
             },
             {
               type: 'section',
-              text: `text: ${req.body.text}`
+              text: {
+                type: 'mrkdwn',
+                text: `text: ${req.body.text}`
+              }
             },
-            // {
-            //   type: 'divider',
-            // },
-            // {
-            //   type: 'section',
-            //   text: `headers: ${JSON.stringify(req.headers)}`
-            // },
-            // {
-            //   type: 'divider',
-            // },
-            // {
-            //   type: 'section',
-            //   text: `body: ${JSON.stringify(req.body)}`
-            // },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `headers: ${JSON.stringify(req.headers)}`
+              }
+            },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `body: ${JSON.stringify(req.body)}`
+              }
+            },
           ]
         })
       }
