@@ -4,10 +4,14 @@ const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
 
+
+// /addcatweight Luna 2022-04-25 4160
+
 slackRouter.post(
   '/test/',
   async (req, res, next) => {
 
+    console.log(`text: ${req.body.text}`)
     axios.get(
       'https://slack.com/api/users.info',
       {
@@ -21,6 +25,7 @@ slackRouter.post(
     ).then(
       slack_res => {
         const email = slack_res.data.user.profile.email
+        console.log(`email: ${email}`)
         // Use email to load user
         // Get cat ID from cat name and user
         // Use cat ID, date and grams to add weight entry
