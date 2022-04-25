@@ -30,10 +30,33 @@ slackRouter.post(
         // Get cat ID from cat name and user
         // Use cat ID, date and grams to add weight entry
         return res.json({
-          email: email,
-          text: req.body.text,
-          headers: req.headers,
-          body: req.body,
+          blocks: [
+            {
+              type: 'section',
+              text: `email: ${email}`
+            },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: `text: ${req.body.text}`
+            },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: `headers: ${req.headers}`
+            },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: `body: ${req.body}`
+            },
+          ]
         })
       }
     )
