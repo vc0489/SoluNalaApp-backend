@@ -13,7 +13,7 @@ slackRouter.post(
   async (req, res, next) => {
 
     console.log(`text: ${req.body.text}`)
-    axios.get(
+    const slackRes = await axios.get(
       'https://slack.com/api/users.info',
       {
         params: {
@@ -23,75 +23,66 @@ slackRouter.post(
           Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
         }
       }
-    ).then(
-      slack_res => {
-        const email = slack_res.data.user.profile.email
-        return email
-      }
-    ).then(email => {
-      return {
-        email,
-        userId: userService.getUserIdByEmail(email)
-      }
-    }
-    ).then(userObj => {
-        //console.log(`email: ${email}`)
-        // Use email to load user
-        // Get cat ID from cat name and user
-        // Use cat ID, date and grams to add weight entry
-        return res.json({
-          blocks: [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `email: ${userObj.email}`
-              }
-            },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `userId: ${userObj.userId}`
-              }
-            },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `text: ${req.body.text}`
-              }
-            },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `headers: ${JSON.stringify(req.headers)}`
-              }
-            },
-            {
-              type: 'divider',
-            },
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `body: ${JSON.stringify(req.body)}`
-              }
-            },
-          ]
-        })
-      }
     )
+    const email = slackRes.data.user.profile.email
+    const userId = await userService.getUserIdByEmail(email)
+
+    //console.log(`email: ${email}`)
+    // Use email to load user
+    // Get cat ID from cat name and user
+    // Use cat ID, date and grams to add weight entry
+    return res.json({
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `email: ${email}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `userId: ${userId}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `text: ${req.body.text}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `headers: ${JSON.stringify(req.headers)}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `body: ${JSON.stringify(req.body)}`
+          }
+        },
+      ]
+    })
+
 
     // axios.get(
     //   'https://slack.com/api/users.lookupByEmail',
