@@ -26,23 +26,26 @@ slackRouter.post(
     ).then(
       slack_res => {
         const email = slack_res.data.user.profile.email
-        const userId = await userService.getUserIdByEmail(email)
-        console.log(`email: ${email}`)
+        return email
+      }
+    ).then(email => userService.getUserIdByEmail(email)
+    ).then(userId => {
+        //console.log(`email: ${email}`)
         // Use email to load user
         // Get cat ID from cat name and user
         // Use cat ID, date and grams to add weight entry
         return res.json({
           blocks: [
-            {
-              type: 'section',
-              text: {
-                type: 'mrkdwn',
-                text: `email: ${email}`
-              }
-            },
-            {
-              type: 'divider',
-            },
+            // {
+            //   type: 'section',
+            //   text: {
+            //     type: 'mrkdwn',
+            //     text: `email: ${email}`
+            //   }
+            // },
+            // {
+            //   type: 'divider',
+            // },
             {
               type: 'section',
               text: {

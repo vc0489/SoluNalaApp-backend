@@ -28,7 +28,7 @@ module.exports = schema => {
   const foodsRouter = require('./controllers/foods')(foodService)
   const weightsRouter = require('./controllers/weights')(weightService)
   const notesRouter = require('./controllers/notes')(noteService)
-  const slackRouter = require('./controllers/slack')()
+  const slackRouter = require('./controllers/slack')(userService, catService, weightService)
 
   return {
     dataAccessor,
