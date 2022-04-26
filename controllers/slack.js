@@ -1,12 +1,13 @@
 const slackRouter = require('express').Router()
-let slackService
+// let slackService
+let userService, catService, weightService
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
 
 
-// /addcatweight Luna 2022-04-25 4160
-
+// /addcatweight
+// return list of cats
 slackRouter.post(
   '/test/',
   async (req, res, next) => {
@@ -25,6 +26,7 @@ slackRouter.post(
     ).then(
       slack_res => {
         const email = slack_res.data.user.profile.email
+        const userId = await userService.getUserIdByEmail(email)
         console.log(`email: ${email}`)
         // Use email to load user
         // Get cat ID from cat name and user
@@ -36,6 +38,16 @@ slackRouter.post(
               text: {
                 type: 'mrkdwn',
                 text: `email: ${email}`
+              }
+            },
+            {
+              type: 'divider',
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `userId: ${userId}`
               }
             },
             {
@@ -94,7 +106,12 @@ slackRouter.post(
   }
 )
 
-module.exports = () => slackRouter
+module.exports = (_userService, _catService, _weightService) => {
+  userService = _userService
+  catService = _catService
+  weightService = _weightService
+  return slackRouter
+}
 // module.exports = _slackService => {
 //   slackService = _slackService
 //   return slackRouter

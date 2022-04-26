@@ -67,7 +67,6 @@ class UserService extends BaseService {
     if (!bcrypt.compareSync(
       password,
       usersWithEmail[0].password_hash,
-      usersWithEmail[0].user_id
     )) {
       throw new errors.IncorrectPasswordError(
         'Incorrect password',
@@ -83,6 +82,26 @@ class UserService extends BaseService {
     console.log('userForToken:', userForToken)
     const token = jwt.sign(userForToken, process.env.SECRET)
     callback({email, token, user_id: usersWithEmail[0].id})
+  }
+
+  async getUserIdByEmail(email) {
+    const [err, usersWithEmail] = await this.dataAccessor.getUserCredentials(email)
+
+    if (err) {
+      throw new errors.DatabaseError(
+        'Error getting user from the DB',
+        err
+      )
+    }
+
+    if (usersWithEmail.length === 0) {
+      throw new errors.UserDoesNotExistError(
+        `User with email ${email} does not exist`,
+        null
+      )
+    }
+
+    return usersWithEmail[0].id
   }
 }
 
