@@ -26,7 +26,7 @@ slackRouter.post(
     )
     const email = slackRes.data.user.profile.email
     const userId = await userService.getUserIdByEmail(email)
-
+    const slackUserId = req.body.user_id
     //console.log(`email: ${email}`)
     // Use email to load user
     // Get cat ID from cat name and user
@@ -47,7 +47,17 @@ slackRouter.post(
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `userId: ${userId}`
+            text: `Slack user ID: ${slackUserId}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `SoluNala user ID: ${userId}`
           }
         },
         {
