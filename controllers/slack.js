@@ -5,7 +5,14 @@ const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
 
-
+// /validate-account
+slackRouter.post(
+  '/validate-link/',
+  async (req, res, next) => {
+    const slackTimestamp = req.headers['X-Slack-Request-Timestamp']
+    const currentTimestamp = Date.now()
+  }
+)
 // /addcatweight
 // return list of cats
 slackRouter.post(
@@ -27,6 +34,11 @@ slackRouter.post(
     const email = slackRes.data.user.profile.email
     const userId = await userService.getUserIdByEmail(email)
     const slackUserId = req.body.user_id
+
+    const slackTimestamp = req.headers['X-Slack-Request-Timestamp']
+    const currentTimestamp = Date.now()
+    // VC TODO check slackUserID is linked
+
     //console.log(`email: ${email}`)
     // Use email to load user
     // Get cat ID from cat name and user
@@ -68,6 +80,16 @@ slackRouter.post(
           text: {
             type: 'mrkdwn',
             text: `text: ${req.body.text}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            timestamps: `slack: ${slackTimestamp}; app: ${currentTimestamp}; diff: ${currentTimestamp-slackTimestamp}`
           }
         },
         {
