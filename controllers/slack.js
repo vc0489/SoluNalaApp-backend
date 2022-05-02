@@ -10,7 +10,7 @@ slackRouter.post(
   '/validate-link/',
   async (req, res, next) => {
     const slackTimestamp = req.headers['X-Slack-Request-Timestamp']
-    const currentTimestamp = Date.now()
+    const currentTimestamp = Date.now()/1000
   }
 )
 // /addcatweight
