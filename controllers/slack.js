@@ -89,7 +89,7 @@ slackRouter.post(
           type: 'section',
           text: {
             type: 'mrkdwn',
-            timestamps: `slack: ${slackTimestamp}; app: ${currentTimestamp}; diff: ${currentTimestamp-slackTimestamp}`
+            text: `*Timestamps* slack: ${slackTimestamp}; app: ${currentTimestamp}; diff: ${currentTimestamp-slackTimestamp}`
           }
         },
         {
