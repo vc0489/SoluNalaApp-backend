@@ -17,6 +17,93 @@ const verifySignature = req => {
 
   return hmac.digest('hex') === hash
 }
+
+slackRouter.post(
+  '/interactive/',
+  async (req, res, next) => {
+    return res.json({
+      blocks: [
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `email: ${email}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `Slack user ID: ${slackUserId}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `SoluNala user ID: ${userId}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `text: ${req.body.text}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `*Timestamps* slack: ${slackTimestamp}; app: ${currentTimestamp}; diff: ${currentTimestamp-slackTimestamp}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        // {
+        //   type: 'section',
+        //   text: {
+        //     type: 'mrkdwn',
+        //     text: `Slack signature verified: ${verifySignature(req)}`
+        //   }
+        // },
+        // {
+        //   type: 'divider',
+        // },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*Headers*: ${JSON.stringify(req.headers)}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*Body:* ${JSON.stringify(req.body)}`
+          }
+        },
+      ]
+    })
+  }
+)
 // /validate-account
 slackRouter.post(
   '/validate-link/',
