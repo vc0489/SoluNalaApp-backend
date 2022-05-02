@@ -9,8 +9,13 @@ const app = express()
 app.use(express.json())
 
 const bodyParser = require('body-parser')
-app.use(bodyParser.json()) // support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })) // support encoded bodies
+const rawBodySaver = (req, res, buf, encoding) => {
+  if (buf && buf.length) {
+    req.rawBody = buf.toString(encoding || 'utf8');
+  }
+}
+app.use(bodyParser.json({ verify: rawBodySaver })) // support json encoded bodies
+app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true })) // support encoded bodies
 
 const cors = require('cors')
 app.use(cors())
@@ -19,7 +24,7 @@ const requestLogger = require('./middleware/requestLogger')
 app.use(requestLogger)
 
 const { getUser, logUser} = require('./middleware/getUser')
-app.use(getUser)
+app.use(getUser) // Check if logged in user
 app.use(logUser)
 
 const {
