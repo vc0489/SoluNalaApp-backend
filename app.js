@@ -10,9 +10,11 @@ app.use(express.json())
 
 const bodyParser = require('body-parser')
 const rawBodySaver = (req, res, buf, encoding) => {
+  console.log('start of rawBodySaver')
   if (buf && buf.length) {
     req.rawBody = buf.toString(encoding || 'utf8');
   }
+  console.log('end of rawBodySaver')
 }
 app.use(bodyParser.json({ verify: rawBodySaver })) // support json encoded bodies
 app.use(bodyParser.urlencoded({verify: rawBodySaver, extended: true })) // support encoded bodies
