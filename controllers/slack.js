@@ -4,7 +4,19 @@ let userService, catService, weightService
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
+const crypto = require('crypto')
 
+// VC TODO - convert to middleware
+const verifySignature = req => {
+  const signature = req.headers['x-slack-signature']
+  const timestamp = req.headers['x-slack-request-timestamp']
+  const hmac = crypto.createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
+  const [version, hash] = signature.split('=')
+
+  hmac.update(`${version}:${timestamp}:${req.rawBody}`)
+
+  return hmac.digest('hex') === hash
+}
 // /validate-account
 slackRouter.post(
   '/validate-link/',
@@ -38,6 +50,8 @@ slackRouter.post(
     const slackTimestamp = req.headers['x-slack-request-timestamp']
     const currentTimestamp = Date.now()/1000
     const sigBasestring = `v0:${slackTimestamp}:${req.rawBody}`
+
+
     // VC TODO check slackUserID is linked
 
     //console.log(`email: ${email}`)
@@ -100,7 +114,7 @@ slackRouter.post(
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `*Slack signature basestring*: ${sigBasestring}`
+            text: `Slack signature verified: ${verifySignature(req)}`
           }
         },
         {
