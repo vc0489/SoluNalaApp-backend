@@ -37,7 +37,7 @@ slackRouter.post(
 
     const slackTimestamp = req.headers['x-slack-request-timestamp']
     const currentTimestamp = Date.now()/1000
-    const sigBasestring = `v0:${slackTimestamp}:${req.body}`
+    const sigBasestring = `v0:${slackTimestamp}:${req.rawBody}`
     // VC TODO check slackUserID is linked
 
     //console.log(`email: ${email}`)
