@@ -7,7 +7,7 @@ const { read } = require('fs')
 const crypto = require('crypto')
 
 // VC TODO - convert to middleware
-const verifySignature = req => {
+const verifySignature = (req, res, next) => {
   const signature = req.headers['x-slack-signature']
   const timestamp = req.headers['x-slack-request-timestamp']
   const hmac = crypto.createHmac('sha256', process.env.SLACK_SIGNING_SECRET)
@@ -15,12 +15,18 @@ const verifySignature = req => {
 
   hmac.update(`${version}:${timestamp}:${req.rawBody}`)
 
-  return hmac.digest('hex') === hash
+  req.slackSignatureValid = hmac.digest('hex') === hash
+
+  next()
 }
+
+slackRouter.use(verifySignature)
 
 slackRouter.post(
   '/interactive/',
   async (req, res, next) => {
+    console.log('In /interactive/')
+
     return res.json({
       blocks: [
         // {
@@ -201,7 +207,7 @@ slackRouter.post(
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `Slack signature verified: ${verifySignature(req)}`
+            text: `Slack signature valid: ${req.slackSignatureValid}`
           }
         },
         {
