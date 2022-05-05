@@ -111,13 +111,77 @@ slackRouter.post(
   }
 )
 // /validate-account
+// slackRouter.post(
+//   '/validate-link/',
+//   async (req, res, next) => {
+//     const slackTimestamp = req.headers['X-Slack-Request-Timestamp']
+//     const currentTimestamp = Date.now()/1000
+//   }
+// )
+
 slackRouter.post(
-  '/validate-link/',
+  '/slash-command/',
   async (req, res, next) => {
-    const slackTimestamp = req.headers['X-Slack-Request-Timestamp']
-    const currentTimestamp = Date.now()/1000
+    const text = req.body.text
+    const slackRes = await axios.get(
+      'https://slack.com/api/users.info',
+      {
+        params: {
+          user: req.body.user_id
+        },
+        headers: {
+          Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
+        }
+      }
+    )
+    const email = slackRes.data.user.profile.email
+    const userId = await userService.getUserIdByEmail(email)
+    const slackUserId = req.body.user_id
+
+    return res.json({
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `email: ${email}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `Slack user ID: ${slackUserId}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `SoluNala user ID: ${userId}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `text: ${req.body.text}`
+          }
+        },
+      ]
+    })
   }
 )
+
 // /addcatweight
 // return list of cats
 slackRouter.post(
