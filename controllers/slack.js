@@ -179,7 +179,7 @@ slackRouter.post(
           }
         }
       )
-      console.log(`modalRes= ${modalRes}`)
+      console.log(`modalRes= ${JSON.stringify(modalRes)}`)
 
       return res.json({
         response_type: "in_channel",
