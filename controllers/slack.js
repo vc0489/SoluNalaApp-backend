@@ -123,6 +123,16 @@ slackRouter.post(
   '/slash-command/',
   async (req, res, next) => {
     const text = req.body.text
+    const textArr = text.split(" ")
+    if (textArr.length === 0) {
+      return res.json(
+        {
+          response_type: "in_channel",
+          text: "No command sent",
+        }
+      )
+    }
+    const command = textArr[0]
     const slackRes = await axios.get(
       'https://slack.com/api/users.info',
       {
