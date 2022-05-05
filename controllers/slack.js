@@ -180,7 +180,7 @@ slackRouter.post(
         }
       )
       console.log(`modalRes.status= ${modalRes.status}`)
-      console.log(`modalRes.data= ${modalRes.data}`)
+      console.log(`modalRes.data= ${JSON.stringify(modalRes.data)}`)
       return
 
       // return res.json({
