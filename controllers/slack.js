@@ -145,13 +145,13 @@ slackRouter.post(
         "https://slack.com/api/views.open",
         {
           headers: {
-            'Content-Type': 'application/JSON; charset=utf-8',
+            'Content-Type': 'application/json; charset=UTF-8',
             Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
           },
           body: {
-            token: process.env.SLACK_BOT_TOKEN,
-            trigger_id: triggerId,
-            view: {
+            // token: process.env.SLACK_BOT_TOKEN,
+            "trigger_id": triggerId,
+            "view": {
               "type": "modal",
               "callback_id": "modal-identifier",
               "title": {
