@@ -141,7 +141,7 @@ slackRouter.post(
 
     const triggerId = req.body.trigger_id
     if (command === "link") {
-      axios.post(
+      await axios.post(
         "https://slack.com/api/views.open",
         {
           headers: {
