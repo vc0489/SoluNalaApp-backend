@@ -181,11 +181,12 @@ slackRouter.post(
       )
       console.log(`modalRes.status= ${modalRes.status}`)
       console.log(`modalRes.data= ${modalRes.data}`)
+      return
 
-      return res.json({
-        response_type: "in_channel",
-        text: "command link should have triggered modal",
-      })
+      // return res.json({
+      //   response_type: "in_channel",
+      //   text: "command link should have triggered modal",
+      // })
     }
 
     const slackRes = await axios.get(
