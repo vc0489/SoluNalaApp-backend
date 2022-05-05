@@ -141,7 +141,7 @@ slackRouter.post(
 
     const triggerId = req.body.trigger_id
     if (command === "link") {
-      await axios.post(
+      const modalRes = await axios.post(
         "https://slack.com/api/views.open",
         {
           headers: {
@@ -179,6 +179,7 @@ slackRouter.post(
           }
         }
       )
+      console.log(`modalRes= ${modalRes}`)
 
       return res.json({
         response_type: "in_channel",
