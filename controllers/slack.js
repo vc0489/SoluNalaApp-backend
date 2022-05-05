@@ -119,6 +119,11 @@ slackRouter.post(
 //   }
 // )
 
+// Available commands:
+// * link
+// * unlink
+// * add-weight
+
 slackRouter.post(
   '/slash-command/',
   async (req, res, next) => {
@@ -132,6 +137,11 @@ slackRouter.post(
           text: "No command sent",
         }
       )
+    }
+
+    const triggerId = req.body.trigger_id
+    if (command === "link") {
+
     }
 
     const slackRes = await axios.get(
@@ -150,6 +160,7 @@ slackRouter.post(
     const slackUserId = req.body.user_id
 
     return res.json({
+      response_type: "in_channel",
       blocks: [
         {
           type: 'section',
@@ -185,7 +196,17 @@ slackRouter.post(
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `text: ${req.body.text}`
+            text: `text: ${text}`
+          }
+        },
+        {
+          type: 'divider',
+        },
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `trigger_id: ${triggerId}`
           }
         },
       ]
