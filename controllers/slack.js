@@ -23,9 +23,9 @@ const verifySignature = (req, res, next) => {
 slackRouter.use(verifySignature)
 
 slackRouter.post(
-  '/interactive/',
+  '/interaction/',
   async (req, res, next) => {
-    console.log('In /interactive/')
+    console.log('In /interaction/')
 
     return res.json({
       blocks: [
