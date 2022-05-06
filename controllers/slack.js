@@ -146,6 +146,11 @@ slackRouter.post(
     // },
 
     if (command === "link") {
+      res.json({
+        response_type: "in_channel",
+        text: "command link should trigger modal",
+      })
+
       const modalRes = await axios.post(
         "https://slack.com/api/views.open",
         {
