@@ -170,6 +170,7 @@ slackRouter.post(
               "type": "plain_text",
               "text": "Submit"
             },
+            "private_metadata": "link",
             "blocks": [
               {
                 "type": "section",
