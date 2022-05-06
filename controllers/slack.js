@@ -166,6 +166,10 @@ slackRouter.post(
               "type": "plain_text",
               "text": "Just a modal"
             },
+            "submit": {
+              "type": "plain_text",
+              "text": "Submit"
+            },
             "blocks": [
               {
                 "type": "section",
@@ -181,6 +185,22 @@ slackRouter.post(
                     "text": "Just a button"
                   },
                   "action_id": "button-identifier"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "input123",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Label of input"
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "plain_input",
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "Enter some plain text"
+                  }
                 }
               }
             ]
