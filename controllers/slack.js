@@ -28,6 +28,8 @@ slackRouter.post(
     console.log('In /interaction/')
     const payload = JSON.parse(req.body.payload)
     console.log(`interaction type = ${payload.type}`)
+    console.log(`private metadata = ${payload.private_metadata}`)
+    console.log(`code = ${payload.state.values.link_slack_input.link_slack_code}`)
     console.log(`payload = ${JSON.stringify(payload, null, 2)}`)
     // const interactionType =
     return res.json({
@@ -174,7 +176,7 @@ slackRouter.post(
             "blocks": [
               {
                 "type": "section",
-                "block_id": "link-slack-instruction",
+                "block_id": "link_slack_instruction",
                 "text": {
                   "type": "mrkdwn",
                   // "text": "*Welcome* to ~my~ Block Kit _modal_!"
@@ -191,14 +193,14 @@ slackRouter.post(
               },
               {
                 "type": "input",
-                "block_id": "link-slack-input",
+                "block_id": "link_slack_input",
                 "label": {
                   "type": "plain_text",
                   "text": "Code"
                 },
                 "element": {
                   "type": "plain_text_input",
-                  "action_id": "link-slack-code",
+                  "action_id": "link_slack_code",
                   "placeholder": {
                     "type": "plain_text",
                     "text": "e.g. 123456"
