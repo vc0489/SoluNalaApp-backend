@@ -161,10 +161,10 @@ slackRouter.post(
           "trigger_id": triggerId,
           "view": {
             "type": "modal",
-            "callback_id": "modal-identifier",
+            "callback_id": "verification-modal",
             "title": {
               "type": "plain_text",
-              "text": "Link this Slack account to SoluNala app"
+              "text": "Link to SoluNala app"
             },
             "submit": {
               "type": "plain_text",
