@@ -27,10 +27,12 @@ slackRouter.post(
   async (req, res, next) => {
     console.log('In /interaction/')
     const payload = JSON.parse(req.body.payload)
-    console.log(`interaction type = ${payload.type}`)
-    console.log(`private metadata = ${payload.private_metadata}`)
-    console.log(`code = ${payload.view.state.values.link_slack_input.link_slack_code}`)
+
     console.log(`payload = ${JSON.stringify(payload, null, 2)}`)
+
+    console.log(`interaction type = ${payload.type}`)
+    console.log(`private metadata = ${payload.view.private_metadata}`)
+    console.log(`code = ${payload.view.state.values.link_slack_input.link_slack_code.value}`)
     // const interactionType =
     return res.json({
       blocks: [
