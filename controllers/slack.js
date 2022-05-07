@@ -170,35 +170,35 @@ slackRouter.post(
               "type": "plain_text",
               "text": "Submit"
             },
-            "private_metadata": "link-slack-account",
+            "private_metadata": "link-slack",
             "blocks": [
               {
                 "type": "section",
-                "block_id": "section-identifier",
+                "block_id": "link-slack-instruction",
                 "text": {
                   "type": "mrkdwn",
                   // "text": "*Welcome* to ~my~ Block Kit _modal_!"
                   "text": "Please enter the 6 digit verificiation code"
                 },
-                "accessory": {
-                  "type": "button",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "Submit"
-                  },
-                  "action_id": "button-identifier"
-                }
+                // "accessory": {
+                //   "type": "button",
+                //   "text": {
+                //     "type": "plain_text",
+                //     "text": "Submit"
+                //   },
+                //   "action_id": "button-identifier"
+                // }
               },
               {
                 "type": "input",
-                "block_id": "verification-code-block",
+                "block_id": "link-slack-input",
                 "label": {
                   "type": "plain_text",
                   "text": "Code"
                 },
                 "element": {
                   "type": "plain_text_input",
-                  "action_id": "verification-code",
+                  "action_id": "link-slack-code",
                   "placeholder": {
                     "type": "plain_text",
                     "text": "e.g. 123456"
