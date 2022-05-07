@@ -41,7 +41,7 @@ slackRouter.post(
       console.log(`private metadata = ${payload.view.private_metadata}`)
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
-      if (privateMetadata.slash_tag === SLASH_TAGS.LINK_SLACK) {
+      if (privateMetadata.slash_type === SLASH_TAGS.LINK_SLACK) {
         const code = view.state.values.link_slack_input.link_slack_code.value
         console.log(`code = ${code}`)
         console.log(`channel ID = ${privateMetadata.channel_id}`)
