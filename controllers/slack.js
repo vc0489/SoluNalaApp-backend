@@ -6,6 +6,10 @@ const axios = require('axios')
 const { read } = require('fs')
 const crypto = require('crypto')
 
+const MODAL_PRIVATE_METADATA = {
+  LINK_SLACK: "link-slack",
+}
+
 // VC TODO - convert to middleware
 const verifySignature = (req, res, next) => {
   const signature = req.headers['x-slack-signature']
@@ -30,10 +34,19 @@ slackRouter.post(
 
     console.log(`payload = ${JSON.stringify(payload, null, 2)}`)
 
-    console.log(`interaction type = ${payload.type}`)
-    console.log(`private metadata = ${payload.view.private_metadata}`)
-    console.log(`code = ${payload.view.state.values.link_slack_input.link_slack_code.value}`)
-    // const interactionType =
+    const interactionType = payload.type
+    console.log(`interaction type = ${interactionType}`)
+    if (interactionType === "view_submission") {
+      const view = payload.view
+      console.log(`private metadata = ${payload.view.private_metadata}`)
+      if (view.private_metadata === MODAL_PRIVATE_METADATA[LINK_SLACK]) {
+        const code = view.state.values.link_slack_input.link_slack_code
+        console.log(`code = ${code}`)
+        res.sendStatus(200)
+        return
+      }
+    }
+
     return res.json({
       blocks: [
         // {
@@ -174,7 +187,7 @@ slackRouter.post(
               "type": "plain_text",
               "text": "Submit"
             },
-            "private_metadata": "link-slack",
+            "private_metadata": MODAL_PRIVATE_METADATA[LINK_SLACK],
             "blocks": [
               {
                 "type": "section",
