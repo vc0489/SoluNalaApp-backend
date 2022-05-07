@@ -6,7 +6,7 @@ const axios = require('axios')
 const { read } = require('fs')
 const crypto = require('crypto')
 
-const MODAL_PRIVATE_METADATA = {
+const SLASH_TAGS = {
   LINK_SLACK: "link-slack",
 }
 
@@ -39,9 +39,12 @@ slackRouter.post(
     if (interactionType === "view_submission") {
       const view = payload.view
       console.log(`private metadata = ${payload.view.private_metadata}`)
-      if (view.private_metadata === MODAL_PRIVATE_METADATA.LINK_SLACK) {
+      const privateMetadata = JSON.parse(payload.view.private_metadata)
+
+      if (privateMetadata.slash_tag === SLASH_TAGS.LINK_SLACK) {
         const code = view.state.values.link_slack_input.link_slack_code.value
         console.log(`code = ${code}`)
+        console.log(`channel ID = ${privateMetadata.channel_id}`)
         res.send()
         return
       }
@@ -160,6 +163,7 @@ slackRouter.post(
     }
 
     const triggerId = req.body.trigger_id
+    const channel_id = req.body.channel_id
     // headers: {
     //   'Content-Type': 'application/json; charset=UTF-8',
     //   Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
@@ -187,7 +191,10 @@ slackRouter.post(
               "type": "plain_text",
               "text": "Submit"
             },
-            "private_metadata": MODAL_PRIVATE_METADATA.LINK_SLACK,
+            "private_metadata": JSON.stringify({
+              slash_type: SLASH_TAGS.LINK_SLACK,
+              channel_id,
+            }),
             "blocks": [
               {
                 "type": "section",
