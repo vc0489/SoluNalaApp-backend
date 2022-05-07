@@ -149,6 +149,7 @@ slackRouter.post(
     // },
 
     if (command === "link") {
+      // VC TODO - first check if user triggered link from app recently
       res.json({
         response_type: "in_channel",
         text: "command link should trigger modal",
@@ -157,50 +158,50 @@ slackRouter.post(
       const modalRes = await axios.post(
         "https://slack.com/api/views.open",
         {
-          //"token": process.env.SLACK_BOT_TOKEN,
           "trigger_id": triggerId,
           "view": {
             "type": "modal",
             "callback_id": "modal-identifier",
             "title": {
               "type": "plain_text",
-              "text": "Just a modal"
+              "text": "Link this Slack account to SoluNala app"
             },
             "submit": {
               "type": "plain_text",
               "text": "Submit"
             },
-            "private_metadata": "link",
+            "private_metadata": "link-slack-account",
             "blocks": [
               {
                 "type": "section",
                 "block_id": "section-identifier",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Welcome* to ~my~ Block Kit _modal_!"
+                  // "text": "*Welcome* to ~my~ Block Kit _modal_!"
+                  "text": "Please enter the 6 digit verificiation code"
                 },
                 "accessory": {
                   "type": "button",
                   "text": {
                     "type": "plain_text",
-                    "text": "Just a button"
+                    "text": "Submit"
                   },
                   "action_id": "button-identifier"
                 }
               },
               {
                 "type": "input",
-                "block_id": "input123",
+                "block_id": "verification-code-block",
                 "label": {
                   "type": "plain_text",
-                  "text": "Label of input"
+                  "text": "Code"
                 },
                 "element": {
                   "type": "plain_text_input",
-                  "action_id": "plain_input",
+                  "action_id": "verification-code",
                   "placeholder": {
                     "type": "plain_text",
-                    "text": "Enter some plain text"
+                    "text": "e.g. 123456"
                   }
                 }
               }
