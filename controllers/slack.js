@@ -40,7 +40,7 @@ slackRouter.post(
       const view = payload.view
       console.log(`private metadata = ${payload.view.private_metadata}`)
       if (view.private_metadata === MODAL_PRIVATE_METADATA.LINK_SLACK) {
-        const code = view.state.values.link_slack_input.link_slack_code
+        const code = view.state.values.link_slack_input.link_slack_code.value
         console.log(`code = ${code}`)
         res.sendStatus(200)
         return
