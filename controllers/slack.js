@@ -29,7 +29,7 @@ slackRouter.post(
     const payload = JSON.parse(req.body.payload)
     console.log(`interaction type = ${payload.type}`)
     console.log(`private metadata = ${payload.private_metadata}`)
-    console.log(`code = ${payload.state.values.link_slack_input.link_slack_code}`)
+    console.log(`code = ${payload.view.state.values.link_slack_input.link_slack_code}`)
     console.log(`payload = ${JSON.stringify(payload, null, 2)}`)
     // const interactionType =
     return res.json({
