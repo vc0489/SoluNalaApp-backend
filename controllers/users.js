@@ -1,6 +1,10 @@
 const userRouter = require('express').Router()
-let userService
+
+const UserService = require('../services/users')
+const userService = new UserService()
+
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
+const checkUser = require('./../middleware/checkUser')
 
 userRouter.post(
   '/slacktest/',
@@ -39,6 +43,32 @@ userRouter.post(
   }
 )
 
+userRouter.get(
+  '/slackid/',
+  checkUser,
+  async (req, res, next) => {
+    console.log('GET /slackid/')
+  }
+)
+
+userRouter.post(
+  '/slackid/',
+  checkUser,
+  requireFieldsNotNull(['slack_id']),
+  async (req, res, next) => {
+    console.log('POST /slackid/')
+    console.log(`slack_id=${req.body.slack_id}`)
+    try {
+      await userService.linkSlackUser(req.user_id, req.body.slack_id)
+      res.status(201).send(
+        {msg: "Slack user ID linked to account. Please send a message to SoluNalaApp"}
+      )
+    } catch (e) {
+      next(e)
+    }
+  }
+)
+
 userRouter.post(
   '/login/',
   requireFieldsNotNull(['email', 'password']),
@@ -58,7 +88,4 @@ userRouter.get(
   }
 )
 
-module.exports = _userService => {
-  userService = _userService
-  return userRouter
-}
+module.exports = userRouter

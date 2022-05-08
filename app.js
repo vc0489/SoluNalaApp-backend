@@ -29,18 +29,14 @@ const { getUser, logUser} = require('./middleware/getUser')
 app.use(getUser) // Check if logged in user
 app.use(logUser)
 
-const {
-  dataAccessor,
-  usersRouter,
-  catsRouter,
-  foodsRouter,
-  weightsRouter,
-  notesRouter,
-  slackRouter,
-} = require('./get_routers')(db_schema)
-
 // Add routers to app
 const baseUrl = '/api/v1'
+const usersRouter = require('./controllers/users')
+const catsRouter = require('./controllers/cats')
+const foodsRouter = require('./controllers/foods')
+const weightsRouter = require('./controllers/weights')
+const notesRouter = require('./controllers/notes')
+const slackRouter = require('./controllers/slack')
 app.use(`${baseUrl}/users`, usersRouter)
 app.use(`${baseUrl}/cats`, catsRouter)
 app.use(`${baseUrl}/foods`, foodsRouter)
@@ -58,11 +54,6 @@ const unknownEndPoint = (req, res) => {
 }
 app.use(unknownEndPoint)
 
-// console.log(`PORT=${process.env.PORT}`)
-// const PORT = process.env.PORT || 3001
-// app.listen(PORT, () => {
-//   console.log(`Server running on port ${PORT}`)
-// })
 
 // TODO - middleware to handle errors, loggin etc.
 const errorHandler = (error, request, response, next) => {
@@ -108,8 +99,5 @@ const errorHandler = (error, request, response, next) => {
 
 app.use(errorHandler)
 
-module.exports = {
-  app,
-  dataAccessor,
-}
+module.exports = app
 

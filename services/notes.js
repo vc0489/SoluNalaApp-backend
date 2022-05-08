@@ -2,6 +2,7 @@
 const errors = require('./utils/errors')
 const transformers = require('./utils/data_transformers')
 const BaseService = require('./base')
+const dao = require('../data_handlers/dao_sql')
 
 class NoteService extends BaseService{
   async getNoteTypes(userId, callback) {
@@ -23,7 +24,7 @@ class NoteService extends BaseService{
     }
 
     // Insert new note type
-    const [err, typeId] = await this.dataAccessor.insertNoteType(
+    const [err, typeId] = await dao.insertNoteType(
       userId,
       description
     )
@@ -71,7 +72,7 @@ class NoteService extends BaseService{
       )
     }
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'updateNoteType',
       [noteTypeId, description],
       'Failed to update note type in the DB'
@@ -86,7 +87,7 @@ class NoteService extends BaseService{
   async deleteNoteType(userId, noteTypeId, cascadeDelete, callback) {
     await this.assertNoteTypeIdBelongsToUser(userId, noteTypeId)
 
-    const notesOfType = await this.dataAccessorRequest(
+    const notesOfType = await this.daoRequest(
       'getNotesOfType',
       [noteTypeId],
       'Failed to fetch notes from the DB'
@@ -102,7 +103,7 @@ class NoteService extends BaseService{
     } else {
       dataFn = 'deleteNoteType'
     }
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       dataFn,
       [noteTypeId],
       'Failed to delete note type from the DB'
@@ -112,7 +113,7 @@ class NoteService extends BaseService{
 
 
   async getNotes(userId, callback) {
-    const [err, data] = await this.dataAccessor.getUserNotes(userId)
+    const [err, data] = await dao.getUserNotes(userId)
 
     if (err) {
       throw new errors.DatabaseError(
@@ -136,7 +137,7 @@ class NoteService extends BaseService{
 
     const noteInsertObj = transformers.transformNotesToSqlV2(note)
 
-    const insertNoteId = await this.dataAccessorRequest(
+    const insertNoteId = await this.daoRequest(
       'insertNotesV2',
       [[noteInsertObj]],
       'Error inserting note into DB'
@@ -161,7 +162,7 @@ class NoteService extends BaseService{
 
     const noteInsertObj = transformers.transformNotesToSql(note)
 
-    const insertNoteId = await this.dataAccessorRequest(
+    const insertNoteId = await this.daoRequest(
       'insertNotes',
       [[noteInsertObj]],
       'Error inserting note into DB'
@@ -178,23 +179,23 @@ class NoteService extends BaseService{
 
     // Filter insertData?
     // Compulsory: cat_id, note_type_id?, date, content
-    insertData = insertData.filter(entry => {
-      return (entry.cat_id && entry.note_type_id && entry.date && entry.content)
-    })
+    // insertData = insertData.filter(entry => {
+    //   return (entry.cat_id && entry.note_type_id && entry.date && entry.content)
+    // })
 
-    insertData = insertData.map(entry => {
-      if (!entry.time) entry.time = 'N/A'
-      return entry
-    })
+    // insertData = insertData.map(entry => {
+    //   if (!entry.time) entry.time = 'N/A'
+    //   return entry
+    // })
 
-    console.log(insertData)
+    // console.log(insertData)
 
-    const [err, insertNoteId] = await this.dataAccessor.insertNotes(insertData)
-    if (err) {
-      callback(true, {msg: 'Error in insertNotes service', err: err})
-      return
-    }
-    callback(false, insertNoteId)
+    // const [err, insertNoteId] = await this.dataAccessor.insertNotes(insertData)
+    // if (err) {
+    //   callback(true, {msg: 'Error in insertNotes service', err: err})
+    //   return
+    // }
+    // callback(false, insertNoteId)
   }
 
   async updateNote(userId, noteId, updateObj, callback) {
@@ -212,7 +213,7 @@ class NoteService extends BaseService{
 
     const updateSqlFields = transformers.transformNotesToSql(updateObj)
 
-    await this.dataAccessorRequest(
+    await this.daoRequest(
       'updateNote',
       [noteId, updateSqlFields],
       'Failed to update note in the DB'
@@ -230,7 +231,7 @@ class NoteService extends BaseService{
     // TODO - finish
     await this.assertNoteIdBelongsToUser(userId, noteId)
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'deleteNote',
       noteId,
       'Failed to delete note from the DB'
@@ -240,7 +241,7 @@ class NoteService extends BaseService{
   }
 
   async _getUserNoteTypes(userId) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserNoteTypes',
       [userId],
       'Error getting note types from the DB',

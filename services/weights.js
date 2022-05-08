@@ -2,10 +2,10 @@
 const errors = require('./utils/errors')
 const transformers = require('./utils/data_transformers')
 const BaseService = require('./base')
-
+const dao = require('../data_handlers/dao_sql')
 class WeightService extends BaseService{
   async getWeights(userId, callback) {
-    const [err, data] = await this.dataAccessor.getUserWeights(userId)
+    const [err, data] = await dao.getUserWeights(userId)
 
     if (err) {
       throw new errors.DatabaseError(
@@ -98,7 +98,7 @@ class WeightService extends BaseService{
     console.log("pre-transform:", weightObj)
     const weightInsertObj = transformers.transformWeightsToSql(weightObj)
     console.log("post-transform:", weightInsertObj)
-    await this.dataAccessorRequest(
+    await this.daoRequest(
       'updateWeight',
       [weightId, weightInsertObj],
       'Failed to update weight in the DB'
@@ -114,7 +114,7 @@ class WeightService extends BaseService{
   async deleteWeight(userId, weightId, callback) {
     await this.assertWeightIdBelongsToUser(userId, weightId)
 
-    await this.dataAccessorRequest(
+    await this.daoRequest(
       'deleteWeight',
       [weightId],
       'Failed to delete weight from the DB'
@@ -127,7 +127,7 @@ class WeightService extends BaseService{
   //--- Helper methods ---//
   //----------------------//
   async _getWeightForCatAndDate(catId, date) {
-    const [getErr, existingWeight] = await this.dataAccessor.getWeightsOfCatDatePairs([[catId, date]])
+    const [getErr, existingWeight] = await dao.getWeightsOfCatDatePairs([[catId, date]])
 
     if (getErr) {
       throw new errors.DatabaseError(
@@ -140,7 +140,7 @@ class WeightService extends BaseService{
   }
 
   async _upsertWeights(weights) {
-    const [upsertErr, deletedIds, insertWeightIds] = await this.dataAccessor.upsertWeights(weights)
+    const [upsertErr, deletedIds, insertWeightIds] = await dao.upsertWeights(weights)
 
     if (upsertErr) {
       throw new errors.DatabaseError(
@@ -162,7 +162,7 @@ class WeightService extends BaseService{
 
   async _insertWeights(weights) {
     // Array of weights, return object array of inserted weights
-    const [insertErr, insertWeightIds] = await this.dataAccessor.insertWeights(weights)
+    const [insertErr, insertWeightIds] = await dao.insertWeights(weights)
     if (insertErr) {
       throw new errors.DatabaseError(
         'Error inserting weights into the DB',
@@ -180,20 +180,6 @@ class WeightService extends BaseService{
     })
     return weights
   }
-
-  // async getCatWeights(catId, callback) {
-  //   throw new errors.NotImplementedError('TODO', '')
-
-  //   const [err, data] = await this.dataAccessor.getWeights(catId)
-
-  //   //console.log('data', data)
-  //   if (err) {
-  //     callback(true, {msg: 'Error in getWeights service', err: err})
-  //     return
-  //   }
-  //   callback(false, transformers.transformWeights(data))
-
-  // }
 }
 
 module.exports = WeightService

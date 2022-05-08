@@ -6,7 +6,8 @@ const {
 } = require('../middleware/bodyFieldValidator')
 
 const foodsRouter = require('express').Router()
-let foodService
+const FoodService = require('../services/foods')
+const foodService = new FoodService()
 
 foodsRouter.use(checkUser)
 
@@ -179,7 +180,5 @@ foodsRouter.post(
   }
 )
 
-module.exports = _foodService => {
-  foodService = _foodService
-  return foodsRouter
-}
+
+module.exports = foodsRouter

@@ -1,11 +1,8 @@
 const { DatabaseError, ResourceNotFoundError, UnauthorisedError } = require('./utils/errors')
+const dao = require('../data_handlers/dao_sql')
 class BaseService {
-  constructor(dataAccessor) {
-    this.dataAccessor = dataAccessor
-  }
-
-  async dataAccessorRequest(reqMethod, args, failMsg) {
-    const [err, data] = await this.dataAccessor[reqMethod](...args)
+  async daoRequest(reqMethod, args, failMsg) {
+    const [err, data] = await dao[reqMethod](...args)
     if (err) {
       throw new DatabaseError(failMsg, err)
     }
@@ -13,7 +10,7 @@ class BaseService {
   }
 
   async getUserCatIds(userId) {
-    const [err, data] = await this.dataAccessor.getUserCats(userId)
+    const [err, data] = await dao.getUserCats(userId)
     if (err) {
       throw new DatabaseError(err, 'Error getting user cats from the DB')
     }
@@ -24,10 +21,14 @@ class BaseService {
     return catIds
   }
 
+  async getUserCatsByEmail(email) {
+
+  }
+
   async getUserBrandIds(userId) {
     //throw new DatabaseError('testErr', 'Error getting user products from the DB')
 
-    const [err, data] = await this.dataAccessor.getUserFoodBrands(userId)
+    const [err, data] = await dao.getUserFoodBrands(userId)
     if (err) {
       throw new DatabaseError('Error getting user food brands from the DB', err)
     }
@@ -41,7 +42,7 @@ class BaseService {
   async getUserProductIds(userId) {
     console.log('In getUserProductIds')
 
-    const [err, data] = await this.dataAccessor.getUserFoodProducts(userId)
+    const [err, data] = await dao.getUserFoodProducts(userId)
     console.log('getUserProductIds.err=', err)
     console.log('getUserProductIds.data=', data)
     if (err) {
@@ -97,7 +98,7 @@ class BaseService {
   }
 
   async assertNoteTypeIdBelongsToUser(userId, noteTypeId, errorMsg = null) {
-    const noteType = await this.dataAccessorRequest(
+    const noteType = await this.daoRequest(
       'getSingleNoteType',
       [noteTypeId],
       'Failed to get note type from the DB'
@@ -123,7 +124,7 @@ class BaseService {
   }
 
   async assertNoteIdBelongsToUser(userId, noteId, errorMsg = null) {
-    const note = await this.dataAccessorRequest(
+    const note = await this.daoRequest(
       'getSingleNote',
       [noteId],
       'Failed to get note from the DB'
@@ -151,7 +152,7 @@ class BaseService {
   }
 
   async assertBrandIdBelongsToUser(userId, brandId, errorMsg = null) {
-    const brand = await this.dataAccessorRequest(
+    const brand = await this.daoRequest(
       'getSingleFoodBrand',
       [brandId],
       'Failed to get food brand from the DB'
@@ -177,7 +178,7 @@ class BaseService {
   }
 
   async assertProductIdBelongsToUser(userId, productId, errorMsg = null) {
-    const product = await this.dataAccessorRequest(
+    const product = await this.daoRequest(
       'getSingleFoodProduct',
       [productId],
       'Failed to get food product from the DB'
@@ -203,7 +204,7 @@ class BaseService {
   }
 
   async assertWeightIdBelongsToUser(userId, weightId, errorMsg = null) {
-    const weight = await this.dataAccessorRequest(
+    const weight = await this.daoRequest(
       'getSingleWeight',
       [weightId],
       'Failed to get weight from the DB'
@@ -230,7 +231,7 @@ class BaseService {
 
   async assertRatingIdBelongsToUser(userId, ratingId, errorMsg = null) {
     // TODO - complete
-    const rating = await this.dataAccessorRequest(
+    const rating = await this.daoRequest(
       'getSingleFoodRating',
       [ratingId],
       'Failed to get rating from the DB'

@@ -7,14 +7,14 @@ const {
   requireFieldsNotNull
 } = require('../middleware/bodyFieldValidator')
 
-let catService
-//let authenticator
+const CatService = require('../services/cats')
+const catService = new CatService()
 
 catsRouter.use(checkUser)
 
 // from https://blog.praveen.science/right-way-of-delaying-execution-synchronously-in-javascript-without-using-loops-or-timeouts/
 // and https://gist.github.com/mrienstra/8aa4eeeeab2012d2aa8ffc7f5e45f280
-function delay(n) {  
+function delay(n) {
   n = n || 2000
   return new Promise(done => setTimeout(done, n))
 }
@@ -76,8 +76,4 @@ catsRouter.delete(
   }
 )
 
-module.exports = _catService => {
-  catService = _catService
-  //authenticator = _authenticator
-  return catsRouter
-}
+module.exports = catsRouter

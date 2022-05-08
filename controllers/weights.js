@@ -8,7 +8,6 @@ const {
 } = require('../middleware/bodyFieldValidator')
 const csvBufferToJson = require('./../middleware/csvBufferToJson')
 
-let weightService
 const CSV_WEIGHT_DATA_FIELD = 'weight_data'
 
 // For CSV upload handling
@@ -19,6 +18,8 @@ const memUpload = multer({
   storage: multer.memoryStorage(),
   limit: { fileSize: 30 * 1024 * 2014, files: 1}
 })
+const WeightService = require('../services/weights')
+const weightService = new WeightService()
 
 weightsRouter.use(checkUser)
 
@@ -159,7 +160,4 @@ weightsRouter.delete(
 )
 
 
-module.exports = _weightService => {
-  weightService = _weightService
-  return weightsRouter
-}
+module.exports = weightsRouter

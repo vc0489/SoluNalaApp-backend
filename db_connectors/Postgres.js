@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+// Documentation: https://node-postgres.com/features/pooling
 const { Pool } = require('pg')
 const { flatten, toTuple } = require('pg-parameterize')
 const fs = require('fs')
@@ -126,18 +127,18 @@ class PostgresPool {
       return [err, null, null]
     }
 
-    try {
-      const [rows, fields] = await this._promisifiedQuery(sqlQuery, payload)
-      console.log('rows: ', rows)
-      console.log('-----------------')
-      return [false, rows, fields]
-    } catch (err) {
-      console.log('err: ', err)
-      console.log('-----------------')
-      return [err, null, null]
-    } finally {
-      conn.release()
-    }
+    // try {
+    //   const [rows, fields] = await this._promisifiedQuery(sqlQuery, payload)
+    //   console.log('rows: ', rows)
+    //   console.log('-----------------')
+    //   return [false, rows, fields]
+    // } catch (err) {
+    //   console.log('err: ', err)
+    //   console.log('-----------------')
+    //   return [err, null, null]
+    // } finally {
+    //   conn.release()
+    // }
   }
 
   async _promisifiedQuery(sqlQuery, payload) {
@@ -145,14 +146,14 @@ class PostgresPool {
     console.log(res)
     return res
 
-    if (!payload) {
-      //return this.pool.promise().query(sqlQuery)
-      return this.pool.query(sqlQuery)
-    } else {
-      sqlQuery = this.formatPlaceholders(sqlQuery)
-      //return this.pool.promise().query(sqlQuery, payload)
-      return this.pool.query(sqlQuery, payload)
-    }
+    // if (!payload) {
+    //   //return this.pool.promise().query(sqlQuery)
+    //   return this.pool.query(sqlQuery)
+    // } else {
+    //   sqlQuery = this.formatPlaceholders(sqlQuery)
+    //   //return this.pool.promise().query(sqlQuery, payload)
+    //   return this.pool.query(sqlQuery, payload)
+    // }
   }
 
   _promisifiedExecute(sqlQuery, values) {

@@ -5,16 +5,17 @@ const jwt = require('jsonwebtoken')
 const BaseService = require('./base')
 const SALT_ROUNDS = 10
 
+const dao = require('../data_handlers/dao_sql')
 class UserService extends BaseService {
 
   async testQuery(callback) {
-    const [err, data] = await this.dataAccessor.testQuery()
+    const [err, data] = await dao.testQuery()
     callback(data)
   }
 
   async registerUser(email, password, callback) {
 
-    const [err, nRows] = await this.dataAccessor.checkIfEmailExists(email)
+    const [err, nRows] = await dao.checkIfEmailExists(email)
 
     if (err) {
       throw new errors.DatabaseError(
@@ -32,7 +33,7 @@ class UserService extends BaseService {
     }
 
     const password_hash = bcrypt.hashSync(password, SALT_ROUNDS)
-    const [insertErr, user_id] = await this.dataAccessor.insertUser(email, password_hash)
+    const [insertErr, user_id] = await dao.insertUser(email, password_hash)
 
     if (insertErr) {
       throw new errors.RegistrationError(
@@ -48,7 +49,7 @@ class UserService extends BaseService {
   }
 
   async loginUser(email, password, callback) {
-    const [err, usersWithEmail] = await this.dataAccessor.getUserCredentials(email)
+    const [err, usersWithEmail] = await dao.getUserCredentials(email)
 
     if (err) {
       throw new errors.DatabaseError(
@@ -84,8 +85,29 @@ class UserService extends BaseService {
     callback({email, token, user_id: usersWithEmail[0].id})
   }
 
+  async linkSlackUser(userId, slackUserId) {
+    const rows = await this.daoRequest(
+      'getSlackUsers',
+      [],
+      'Error getting slack users from the DB'
+    )
+    const linkedSlackIds = rows.map(r => r["slack_user_id"])
+    if (linkedSlackIds.includes(slackUserId)) {
+      throw new errors.DuplicateDataError(
+        `Slack ID ${slackUserId} already linked`,
+        null
+      )
+    }
+    await this.daoRequest(
+      'insertSlackUser',
+      [userId, slackUserId],
+      'Error inserting slack user into the DB'
+    )
+
+  }
+
   async getUserIdByEmail(email) {
-    const [err, usersWithEmail] = await this.dataAccessor.getUserCredentials(email)
+    const [err, usersWithEmail] = await dao.getUserCredentials(email)
 
     if (err) {
       throw new errors.DatabaseError(

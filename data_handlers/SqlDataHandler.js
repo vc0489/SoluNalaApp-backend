@@ -5,10 +5,11 @@ const mysql = require('mysql2') // For formatting queries
 // https://codeburst.io/node-js-mysql-and-promises-4c3be599909b
 
 const TAG_USER_TABLE = 'users'
-
+const { getPool } = require('../get_data_accessor')
 class SqlDataHandler {
-  constructor(db) {
-    this.db = db
+  constructor() {
+    //  this.db = require('./get_data_accessor').getPool()
+    this.db = getPool()
   }
 
   _executeQuery(query, callback) {
@@ -36,30 +37,28 @@ class SqlDataHandler {
   //--- Generic single table queries ---
   //------------------------------------
   async _syncExecuteSelect(table, filter_obj, cols=null) {
-    const filters = Object.keys(filter_obj)
-    const filters_str = filters.map(filter => `${filter} = ?`).join(' AND ')
+    let filters_str = ''
+    if (filter_obj && Object.keys(filter_obj).length > 0) {
+      const filters = Object.keys(filter_obj)
+    filters_str = ' WHERE ' + filters.map(filter => `${filter} = ?`).join(' AND ')
+    }
 
     let col_str;
-    if (cols == null) {
+    if (cols === null) {
       col_str = '*'
     } else {
       col_str = cols.join(',')
     }
     const query = `
       SELECT ${col_str} FROM ${table}
-      WHERE ${filters_str}
+      ${filters_str}
     `
 
     return await this._syncExecute(query, Object.values(filter_obj))
   }
 
-  async _syncExecuteInsert(table, fields, data) {
-    const fields_str = fields.join(', ')
-
-    const insert_row = []
-    for (field of fields) {
-      insert_row.push(data[field])
-    }
+  async _syncExecuteInsert(table, ins_obj) {
+    const fields_str = Object.keys(ins_obj).join(', ')
 
     const query = `
       INSERT INTO ${table}
@@ -67,8 +66,25 @@ class SqlDataHandler {
       VALUES ?
     `
 
-    return await this._syncQuery(query, [[insert_row]])
+    return await this._syncQuery(query, [[Object.values(ins_obj)]])
   }
+
+  // async _syncExecuteInsert(table, fields, data) {
+  //   const fields_str = fields.join(', ')
+
+  //   const insert_row = []
+  //   for (field of fields) {
+  //     insert_row.push(data[field])
+  //   }
+
+  //   const query = `
+  //     INSERT INTO ${table}
+  //     ( ${fields_str} )
+  //     VALUES ?
+  //   `
+
+  //   return await this._syncQuery(query, [[insert_row]])
+  // }
 
   async _syncExecuteBulkInsert(table, fields, data) {
     const insert_array = data.map(entry => {
@@ -143,7 +159,6 @@ class SqlDataHandler {
   }
 
   async insertUser(email, password_hash) {
-
     const query = `
       INSERT INTO ${TAG_USER_TABLE}
       (email, password_hash)
@@ -155,6 +170,24 @@ class SqlDataHandler {
       return [err, result[0].id]
     }
     return [err, result.insertId?.toString()]
+  }
+
+  async getSlackUsers(user_id = null) {
+    let filterObj = {}
+    if (user_id !== null) {
+      filterObj = {user_id}
+    }
+    const [err, slack_user_ids] = await this._syncExecuteSelect(
+      "slack_user", filterObj, ["user_id", "slack_user_id"]
+    )
+    return [err, slack_user_ids]
+  }
+
+  async insertSlackUser(user_id, slack_user_id) {
+    const [err, res] = await this._syncExecuteInsert(
+      "slack_user", {slack_user_id, user_id}
+    )
+    return [err, res]
   }
 
   //-------------------
@@ -420,9 +453,13 @@ class SqlDataHandler {
   async insertFoodRating(insert_obj) {
     const [insErr, insRes] = await this._syncExecuteInsert(
       'food_rating',
-      ['cat_id', 'rating_date', 'product_id', 'rating'],
-      insert_obj
+      insert_obj,
     )
+    // const [insErr, insRes] = await this._syncExecuteInsert(
+    //   'food_rating',
+    //   ['cat_id', 'rating_date', 'product_id', 'rating'],
+    //   insert_obj
+    // )
 
     return [insErr, insRes?.insertId]
 
@@ -1059,5 +1096,16 @@ class SqlDataHandler {
 
 }
 
+// let dataHandler
+// module.exports = {
+//   getDataHandler: () => {
+//     if (dataHandler) {
+//       console.log('Using existing dataHandler')
+//       return dataHandler
+//     } else {
+
+//     }
+//   }
+// }
 module.exports = SqlDataHandler
 

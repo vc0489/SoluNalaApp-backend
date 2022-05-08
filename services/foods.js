@@ -2,11 +2,12 @@
 const errors = require('./utils/errors')
 const transformers = require('./utils/data_transformers')
 const BaseService = require('./base')
+const dao = require('../data_handlers/dao_sql')
 
 class FoodService extends BaseService {
 
   async getFoodBrands(userId, callback) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserFoodBrands',
       [userId],
       'Error getting food brands from DB'
@@ -41,7 +42,7 @@ class FoodService extends BaseService {
   async deleteFoodBrand(userId, brandId, callback) {
     await this.assertBrandIdBelongsToUser(userId, brandId)
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'deleteFoodBrand',
       [brandId],
       'Failed to delete food brand from the DB'
@@ -52,7 +53,7 @@ class FoodService extends BaseService {
 
   // Product endpoints
   async getFoodProducts(userId, mappedOutput, callback) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserFoodProducts',
       [userId],
       'Error getting food products from the DB',
@@ -82,7 +83,7 @@ class FoodService extends BaseService {
       await this.assertBrandIdBelongsToUser(userId, updateObj.brand_id)
     }
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'updateFoodProduct',
       [productId, updateObj],
       'Failed to update food product in the DB'
@@ -95,7 +96,7 @@ class FoodService extends BaseService {
   async deleteFoodProduct(userId, productId, callback) {
     await this.assertProductIdBelongsToUser(userId, productId)
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'deleteFoodProduct',
       [productId],
       'Failed to delete food product from the DB'
@@ -106,7 +107,7 @@ class FoodService extends BaseService {
 
   // Rating endpoints
   async getFoodRatings(userId, callback) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserFoodRatings',
       [userId],
       'Error getting food ratings from the DB',
@@ -137,7 +138,7 @@ class FoodService extends BaseService {
     const ratingInsertObj = transformers.transformFoodRatingsToSql(insertData)
     //console.log("🚀 ~ file: foods.js ~ line 105 ~ FoodService ~ ratingInsertObj", ratingInsertObj)
 
-    const ratingId = await this.dataAccessorRequest(
+    const ratingId = await this.daoRequest(
       'insertFoodRating',
       [ratingInsertObj],
       'Error inserting food rating into DB'
@@ -163,7 +164,7 @@ class FoodService extends BaseService {
     }
 
     const ratingUpdateObj = transformers.transformFoodRatingsToSql(updateObj)
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'updateFoodRating',
       [ratingId, ratingUpdateObj],
       'Failed to update food rating in the DB'
@@ -176,7 +177,7 @@ class FoodService extends BaseService {
   async deleteFoodRating(userId, ratingId, callback) {
     await this.assertRatingIdBelongsToUser(userId, ratingId)
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'deleteFoodRating',
       ratingId,
       'Failed to delete food rating from the DB'
@@ -188,7 +189,7 @@ class FoodService extends BaseService {
   // Private functions //
   //-------------------//
   async _getUserFoodBrands(userId) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserFoodBrands',
       [userId],
       'Error getting note types from the DB',
@@ -205,7 +206,7 @@ class FoodService extends BaseService {
       return {brand, id: brandId}
     }
 
-    const insBrandId = await this.dataAccessorRequest(
+    const insBrandId = await this.daoRequest(
       'insertFoodBrand',
       [userId, brand],
       'Error inserting brand into DB'
@@ -246,7 +247,7 @@ class FoodService extends BaseService {
     }
 
     // Brand with name doesn't exist
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'updateFoodBrand',
       [brandId, brand],
       'Error updating brand in DB'
@@ -254,7 +255,7 @@ class FoodService extends BaseService {
   }
 
   async _brandIdFromBrand(userId, brand) {
-    const [err, userBrands] = await this.dataAccessor.getUserFoodBrands(userId)
+    const [err, userBrands] = await dao.getUserFoodBrands(userId)
     if (err) {
       throw new errors.DatabaseError(
         'Error getting user food brands from the DB',
@@ -277,7 +278,7 @@ class FoodService extends BaseService {
       return {brand_id: brandId, product, product_id: productId}
     }
 
-    const [err, insProductId] = await this.dataAccessor.insertFoodProduct(brandId, product)
+    const [err, insProductId] = await dao.insertFoodProduct(brandId, product)
     if (err) {
       throw new errors.DatabaseError(
         'Error inserting product into DB',
@@ -289,7 +290,7 @@ class FoodService extends BaseService {
   }
 
   async _productIdIfExists(brandId, product) {
-    const [err, brandProducts] = await this.dataAccessor.getFoodBrandProducts(brandId)
+    const [err, brandProducts] = await dao.getFoodBrandProducts(brandId)
     if (err) {
       throw new errors.DatabaseError(
         'Error getting food brand products from the DB',

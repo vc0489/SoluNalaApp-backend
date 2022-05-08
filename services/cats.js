@@ -44,7 +44,7 @@ class CatService extends BaseService{
     const updateObj = transformers.transformCatsToSql(catData)
 
     // Insert new cat
-    const insertCatId = await this.dataAccessorRequest(
+    const insertCatId = await this.daoRequest(
       'insertCat',
       [updateObj],
       'Failed adding cat to the DB'
@@ -62,7 +62,7 @@ class CatService extends BaseService{
     await this.assertCatIdsBelongToUser(userId, catId, 'Cat does not belong to user')
     const updateObjSqlFields = transformers.transformCatsToSql(updateObj)
 
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'updateCat',
       [catId, updateObjSqlFields],
       'Failed to update cat in the DB',
@@ -76,7 +76,7 @@ class CatService extends BaseService{
 
   async deleteCat(userId, catId, callback) {
     await this.assertCatIdsBelongToUser(userId, catId)
-    await this.dataAccessorRequest(
+    await this.daoRequest(
       'deleteCat',
       [catId],
       'Failed to delete cat from the DB'
@@ -85,7 +85,7 @@ class CatService extends BaseService{
   }
 
   async _getUserCats(userId) {
-    const data = await this.dataAccessorRequest(
+    const data = await this.daoRequest(
       'getUserCats',
       [userId],
       'Failed getting cat data from the DB'

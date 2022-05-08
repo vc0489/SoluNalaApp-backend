@@ -1,6 +1,7 @@
 const slackRouter = require('express').Router()
-// let slackService
-let userService, catService, weightService
+const UserService = require('../services/users')
+const userService = new UserService()
+
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
@@ -456,13 +457,5 @@ slackRouter.post(
   }
 )
 
-module.exports = (_userService, _catService, _weightService) => {
-  userService = _userService
-  catService = _catService
-  weightService = _weightService
-  return slackRouter
-}
-// module.exports = _slackService => {
-//   slackService = _slackService
-//   return slackRouter
-// }
+
+module.exports = slackRouter

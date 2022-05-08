@@ -2,21 +2,20 @@
 
 const MySqlPool = require('./db_connectors/MySqlPool')
 const PostgresPool = require('./db_connectors/Postgres')
-const SqlDataHandler = require('./data_handlers/SqlDataHandler')
 
 let pool_obj
+const db_schema = process.env.DB_SCHEMA
 
 module.exports = {
-  getPool: (schema) => {
+  getPool: () => {
     if (pool_obj) {
       // if it is already there, grab it here
       console.log('Grabbing existing pool')
       return pool_obj
     } else {
       //const pool = new MySqlPool()
-      const pool = new PostgresPool(schema)
-      pool_obj = new SqlDataHandler(pool)
-      console.log('Creating new pool')
+      pool_obj = new PostgresPool(db_schema)
+      console.log(`Created new pool with schema ${db_schema}`)
       return pool_obj
     }
   }

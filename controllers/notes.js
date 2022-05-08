@@ -7,7 +7,8 @@ const {
 } = require('../middleware/bodyFieldValidator')
 const defaultQueryParam = require('./../middleware/defaultQueryParam')
 
-let noteService
+const NoteService = require('../services/notes')
+const noteService = new NoteService()
 
 notesRouter.use(checkUser)
 
@@ -156,7 +157,4 @@ notesRouter.delete(
   }
 )
 
-module.exports = _noteService => {
-  noteService = _noteService
-  return notesRouter
-}
+module.exports = notesRouter
