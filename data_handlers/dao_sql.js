@@ -171,13 +171,13 @@ const getSlackUsers = async (user_id = null) => {
 module.exports.getSlackUsers = getSlackUsers
 
 
-const insertSlackUser = async (user_id, slack_user_id) => {
+const insertSlackUser = async (user_id, slack_user_id, verification_code_hash, verification_expiry) => {
   const [err, res] = await _syncExecuteInsert(
-    "slack_user", {slack_user_id, user_id}
+    "slack_user", {slack_user_id, user_id, verification_code_hash, verification_expiry}
   )
   return [err, res]
 }
-module.exports.insertSlackUsers = insertSlackUser
+module.exports.insertSlackUser = insertSlackUser
 
 
 //-------------------

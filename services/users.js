@@ -98,11 +98,18 @@ class UserService extends BaseService {
         null
       )
     }
+    // Expiry one hour after now
+    const verificationExpiry = new Date(Date.now() + 60*60000) //new Date(curDatetime.getTime() + 10*60000)
+    const verificationCode = this.genVerificationCode()
+    const verificationCodeHash = bcrypt.hashSync(verificationCode, SALT_ROUNDS)
+
     await this.daoRequest(
       'insertSlackUser',
-      [userId, slackUserId],
+      [userId, slackUserId, verificationCodeHash, verificationExpiry.toISOString()],
       'Error inserting slack user into the DB'
     )
+
+    return [verificationCode, verificationExpiry.toISOString()]
 
   }
 
@@ -124,6 +131,16 @@ class UserService extends BaseService {
     }
 
     return usersWithEmail[0].id
+  }
+
+  genVerificationCode() {
+    var text = ""
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < 6; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length))
+
+    return text
   }
 }
 

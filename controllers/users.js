@@ -56,12 +56,10 @@ userRouter.post(
   checkUser,
   requireFieldsNotNull(['slack_id']),
   async (req, res, next) => {
-    console.log('POST /slackid/')
-    console.log(`slack_id=${req.body.slack_id}`)
     try {
-      await userService.linkSlackUser(req.user_id, req.body.slack_id)
+      [verificationCode, verificationExpiry] = await userService.linkSlackUser(req.user_id, req.body.slack_id)
       res.status(201).send(
-        {msg: "Slack user ID linked to account. Please send a message to SoluNalaApp"}
+        {msg: `Slack user ID linked to account. Please enter verification code ${verificationCode} before ${verificationExpiry}`}
       )
     } catch (e) {
       next(e)
