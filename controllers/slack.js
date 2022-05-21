@@ -187,7 +187,8 @@ slackRouter.post(
         })
         return
       }
-
+      let expiryTimestamp = new Date(slackUserRow[0]['verification_expiry'])
+      expiryTimestamp = expiryTimestamp.getTime()
       const curTimestamp = Date.now()
 
       // res.json({
