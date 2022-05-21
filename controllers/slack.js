@@ -171,17 +171,29 @@ slackRouter.post(
 
     const triggerId = req.body.trigger_id
     const channel_id = req.body.channel_id
+    const slackUserId = req.body.user_id
     // headers: {
     //   'Content-Type': 'application/json; charset=UTF-8',
     //   Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
     // },
 
+
     if (command === "link") {
-      // VC TODO - first check if user triggered link from app recently
-      res.json({
-        response_type: "in_channel",
-        text: "command link should trigger modal",
-      })
+      const slackUserRow = await userService.getSlackUserLink(slackUserId)
+      if (slackUserRow.length !== 1) {
+        res.json({
+          response_type: "in_channel",
+          text: "This Slack account has not been linked to any SoluNala account.",
+        })
+        return
+      }
+
+      const curTimestamp = Date.now()
+
+      // res.json({
+      //   response_type: "in_channel",
+      //   text: "command link should trigger modal",
+      // })
 
       const modalRes = await axios.post(
         "https://slack.com/api/views.open",
@@ -261,7 +273,6 @@ slackRouter.post(
     )
     const email = slackRes.data.user.profile.email
     const userId = await userService.getUserIdByEmail(email)
-    const slackUserId = req.body.user_id
 
     return res.json({
       response_type: "in_channel",
