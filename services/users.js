@@ -124,7 +124,7 @@ class UserService extends BaseService {
   async verifySlackUserLink(slackUserId, accountEmail, verificationCode) {
     const curDatetime = Date.now()
 
-    const slackUserRow = this.getSlackUserLink(slackUserId)
+    const slackUserRow = await this.getSlackUserLink(slackUserId)
 
     console.log(slackUserRow)
     if (slackUserRow.length === 0) {
