@@ -45,12 +45,14 @@ slackRouter.post(
       if (privateMetadata.slash_type === SLASH_TAGS.LINK_SLACK) {
         res.send()
         const code = view.state.values.link_slack_input.link_slack_code.value
+        const slackUserId = payload.user.id
         console.log(`code = ${code}`)
         console.log(`channel ID = ${privateMetadata.channel_id}`)
 
-        // userService.verifySlackUserLink(
+        userService.verifySlackUserLink(
+          slackUserId,
 
-        // )
+        )
         return
       }
     }
@@ -207,16 +209,8 @@ slackRouter.post(
                 "text": {
                   "type": "mrkdwn",
                   // "text": "*Welcome* to ~my~ Block Kit _modal_!"
-                  "text": "Please enter the 6 digit verificiation code"
+                  "text": "Please enter the email registered to your SolunNalaApp account and the 6 character verificiation code"
                 },
-                // "accessory": {
-                //   "type": "button",
-                //   "text": {
-                //     "type": "plain_text",
-                //     "text": "Submit"
-                //   },
-                //   "action_id": "button-identifier"
-                // }
               },
               {
                 "type": "input",
@@ -230,7 +224,7 @@ slackRouter.post(
                   "action_id": "link_slack_code",
                   "placeholder": {
                     "type": "plain_text",
-                    "text": "e.g. 123456"
+                    "text": "e.g. 1A9x3u"
                   }
                 }
               }
