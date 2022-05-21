@@ -58,6 +58,7 @@ slackRouter.post(
           )
           console.log('Slack link code verified!')
           res.send()
+          return
         } catch (e) {
           // VC TODO - check for IncorrectPasswordError
           res.json({
@@ -66,6 +67,7 @@ slackRouter.post(
               'link_slack_code_block': 'Incorrect code'
             }
           })
+          return
         }
       }
     }
