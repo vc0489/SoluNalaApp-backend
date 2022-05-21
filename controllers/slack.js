@@ -222,6 +222,7 @@ slackRouter.post(
         return
       }
 
+      res.send()
       const modalRes = await axios.post(
         "https://slack.com/api/views.open",
         {
