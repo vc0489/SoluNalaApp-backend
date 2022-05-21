@@ -87,30 +87,57 @@ class UserService extends BaseService {
 
   async linkSlackUser(userId, slackUserId) {
     const rows = await this.daoRequest(
-      'getSlackUsers',
-      [],
-      'Error getting slack users from the DB'
+      'getSlackUserWithEmail',
+      [slackUserId],
+      'Error getting slack user from the DB'
     )
-    const linkedSlackIds = rows.map(r => r["slack_user_id"])
-    if (linkedSlackIds.includes(slackUserId)) {
+    if (rows.length === 1 && rows[0].verified) {
       throw new errors.DuplicateDataError(
         `Slack ID ${slackUserId} already linked`,
         null
       )
     }
+    // const rows = await this.daoRequest(
+    //   'getSlackUsers',
+    //   [],
+    //   'Error getting slack users from the DB'
+    // )
+    // const linkedSlackIds = rows.map(r => r["slack_user_id"])
+    // if (linkedSlackIds.includes(slackUserId)) {
+    //   throw new errors.DuplicateDataError(
+    //     `Slack ID ${slackUserId} already linked`,
+    //     null
+    //   )
+    // }
+
     // Expiry one hour after now
     const verificationExpiry = new Date(Date.now() + 60*60000) //new Date(curDatetime.getTime() + 10*60000)
     const verificationCode = this.genVerificationCode()
     const verificationCodeHash = bcrypt.hashSync(verificationCode, SALT_ROUNDS)
 
-    await this.daoRequest(
-      'insertSlackUser',
-      [userId, slackUserId, verificationCodeHash, verificationExpiry.toISOString()],
-      'Error inserting slack user into the DB'
-    )
+    if (rows.length === 1) {
+      await this.daoRequest(
+        'patchSlackUser',
+        [
+          slackUserId,
+          {
+            user_id: userId,
+            verification_code_hash: verificationCodeHash,
+            verification_expiry: verificationExpiry,
+            verified: false,
+          }
+        ],
+        'Error updating slack user in the DB'
+      )
+    } else {
+      await this.daoRequest(
+        'insertSlackUser',
+        [userId, slackUserId, verificationCodeHash, verificationExpiry.toISOString()],
+        'Error inserting slack user into the DB'
+      )
+    }
 
     return [verificationCode, verificationExpiry.toISOString()]
-
   }
 
   async getSlackUserLinkAndEmail(slackUserId) {

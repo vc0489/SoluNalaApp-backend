@@ -180,6 +180,17 @@ const insertSlackUser = async (user_id, slack_user_id, verification_code_hash, v
 module.exports.insertSlackUser = insertSlackUser
 
 
+const patchSlackUser = async (slack_user_id, update_obj) => {
+  const [err, res] = await _syncExecuteUpdate(
+    "slack_user",
+    update_obj,
+    { slack_user_id },
+  )
+  return [err, res]
+}
+module.exports.patchSlackUser = patchSlackUser
+
+
 const getSlackUserAndEmail = async (slack_user_id) => {
   const table = `
     (
