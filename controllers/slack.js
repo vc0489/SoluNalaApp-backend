@@ -44,14 +44,17 @@ slackRouter.post(
 
       if (privateMetadata.slash_type === SLASH_TAGS.LINK_SLACK) {
         res.send()
-        const code = view.state.values.link_slack_input.link_slack_code.value
+        const email = view.state.values.link_slack_email_block.link_slack_email.value
+        const code = view.state.values.link_slack_code_block.link_slack_code.value
         const slackUserId = payload.user.id
+        console.log(`email = ${email}`)
         console.log(`code = ${code}`)
-        console.log(`channel ID = ${privateMetadata.channel_id}`)
+        // console.log(`channel ID = ${privateMetadata.channel_id}`)
 
-        userService.verifySlackUserLink(
+        await userService.verifySlackUserLink(
           slackUserId,
-
+          email,
+          code,
         )
         return
       }
@@ -179,12 +182,12 @@ slackRouter.post(
 
 
     if (command === "link") {
-      const slackUserRow = await userService.getSlackUserLink(slackUserId)
+      const slackUserRow = await userService.getSlackUserLinkAndEmail(slackUserId)
 
       if (slackUserRow.length !== 1) {
         res.json({
           response_type: "in_channel",
-          text: "A request to link this Slack account to SoluNala has not been made recently.",
+          text: "A request to link this Slack account to SoluNalaApp has not been made recently.",
           // text: "This Slack account has not been linked to any SoluNala account.",
         })
         return
@@ -193,7 +196,7 @@ slackRouter.post(
       if (slackUserRow['verified']) {
         res.json({
           response_type: "in_channel",
-          text: "This Slack account is already linked to SoluNala.",
+          text: "This Slack account is already linked to SoluNalaApp.",
         })
         return
       }
@@ -202,7 +205,7 @@ slackRouter.post(
       if (Date.now() > expiryTimestamp.getTime()) {
         res.json({
           response_type: "in_channel",
-          text: "A request to link this Slack account to SoluNala has not been made recently.",
+          text: "A request to link this Slack account to SoluNalaApp has not been made recently.",
         })
         return
       }
@@ -238,7 +241,23 @@ slackRouter.post(
               },
               {
                 "type": "input",
-                "block_id": "link_slack_input",
+                "block_id": "link_slack_email_block",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Email"
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "link_slack_email",
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "e.g. abc@xyz.com"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "link_slack_code_block",
                 "label": {
                   "type": "plain_text",
                   "text": "Code"
@@ -251,7 +270,7 @@ slackRouter.post(
                     "text": "e.g. 1A9x3u"
                   }
                 }
-              }
+              },
             ]
           }
         },
