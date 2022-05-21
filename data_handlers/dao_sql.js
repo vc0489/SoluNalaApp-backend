@@ -204,8 +204,8 @@ const getSlackUserAndEmail = async (slack_user_id) => {
     ) t
   `
   const [err, res] = await _syncExecuteSelect(
-    "t",
-    {slack_user_id}
+    table,
+    {slack_user_id},
   )
   return [err, res]
 }
