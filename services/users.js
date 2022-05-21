@@ -160,7 +160,7 @@ class UserService extends BaseService {
       throw new errors.BadRequest("Slack user already linked")
     }
 
-    if (email === slackUserRow) {
+    if (email === slackUserRow[0]['email']) {
       if (
         !bcrypt.compareSync(
           verificationCode,

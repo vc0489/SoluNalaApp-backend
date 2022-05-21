@@ -56,6 +56,7 @@ slackRouter.post(
             email,
             code,
           )
+          console.log('Slack link code verified!')
           res.send()
         } catch (e) {
           // VC TODO - check for IncorrectPasswordError
