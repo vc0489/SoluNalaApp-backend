@@ -180,21 +180,32 @@ slackRouter.post(
 
     if (command === "link") {
       const slackUserRow = await userService.getSlackUserLink(slackUserId)
+
       if (slackUserRow.length !== 1) {
         res.json({
           response_type: "in_channel",
-          text: "This Slack account has not been linked to any SoluNala account.",
+          text: "A request to link this Slack account to SoluNala has not been made recently.",
+          // text: "This Slack account has not been linked to any SoluNala account.",
         })
         return
       }
-      let expiryTimestamp = new Date(slackUserRow[0]['verification_expiry'])
-      expiryTimestamp = expiryTimestamp.getTime()
-      const curTimestamp = Date.now()
 
-      // res.json({
-      //   response_type: "in_channel",
-      //   text: "command link should trigger modal",
-      // })
+      if (slackUserRow['verified']) {
+        res.json({
+          response_type: "in_channel",
+          text: "This Slack account is already linked to SoluNala.",
+        })
+        return
+      }
+
+      const expiryTimestamp = new Date(slackUserRow[0]['verification_expiry'])
+      if (Date.now() > expiryTimestamp.getTime()) {
+        res.json({
+          response_type: "in_channel",
+          text: "A request to link this Slack account to SoluNala has not been made recently.",
+        })
+        return
+      }
 
       const modalRes = await axios.post(
         "https://slack.com/api/views.open",
