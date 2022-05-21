@@ -7,6 +7,8 @@ const axios = require('axios')
 const { read } = require('fs')
 const crypto = require('crypto')
 
+const errors = require('../services/utils/errors')
+
 const SLASH_TAGS = {
   LINK_SLACK: "link-slack",
 }
@@ -43,20 +45,27 @@ slackRouter.post(
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
       if (privateMetadata.slash_type === SLASH_TAGS.LINK_SLACK) {
-        res.send()
         const email = view.state.values.link_slack_email_block.link_slack_email.value
         const code = view.state.values.link_slack_code_block.link_slack_code.value
         const slackUserId = payload.user.id
         console.log(`email = ${email}`)
         console.log(`code = ${code}`)
-        // console.log(`channel ID = ${privateMetadata.channel_id}`)
-
-        await userService.verifySlackUserLink(
-          slackUserId,
-          email,
-          code,
-        )
-        return
+        try {
+          await userService.verifySlackUserLink(
+            slackUserId,
+            email,
+            code,
+          )
+          res.send()
+        } catch (e) {
+          // VC TODO - check for IncorrectPasswordError
+          res.json({
+            'response_action': 'errors',
+            'errors': {
+              'link_slack_code_block': 'Incorrect code'
+            }
+          })
+        }
       }
     }
 

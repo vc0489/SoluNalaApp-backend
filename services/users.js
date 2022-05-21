@@ -161,7 +161,17 @@ class UserService extends BaseService {
     }
 
     if (email === slackUserRow) {
-
+      if (
+        !bcrypt.compareSync(
+          verificationCode,
+          slackUserRow[0]['verification_code_hash']
+        )
+      ) {
+        throw new errors.IncorrectPasswordError(
+          'Incorrect verification code',
+          null
+        )
+      }
     }
   }
 
