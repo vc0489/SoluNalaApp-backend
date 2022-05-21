@@ -113,6 +113,21 @@ class UserService extends BaseService {
 
   }
 
+  async verifySlackUserLink(slackUserId, accountEmail, verificationCode) {
+    const curDatetime = Date.now()
+
+    const slackUserRow = await this.daoRequest(
+      'getSlackUser'
+      [slackUserId],
+      'Error getting slack user from the DB'
+    )
+
+    console.log(slackUserRow)
+    if (slackUserRow.length === 0) {
+      throw new errors.BadRequest("No slack user linked to this account")
+    }
+  }
+
   async getUserIdByEmail(email) {
     const [err, usersWithEmail] = await dao.getUserCredentials(email)
 
