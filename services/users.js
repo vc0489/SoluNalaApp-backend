@@ -87,7 +87,7 @@ class UserService extends BaseService {
 
   async linkSlackUser(userId, slackUserId) {
     const rows = await this.daoRequest(
-      'getSlackUserWithEmail',
+      'getSlackUserAndEmail',
       [slackUserId],
       'Error getting slack user from the DB'
     )
