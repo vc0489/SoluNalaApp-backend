@@ -50,22 +50,26 @@ slackRouter.post(
         const slackUserId = payload.user.id
         console.log(`email = ${email}`)
         console.log(`code = ${code}`)
-        try {
-          await userService.verifySlackUserLink(
-            slackUserId,
-            email,
-            code,
-          )
+        const verificationResults = await userService.verifySlackUserLink(
+          slackUserId,
+          email,
+          code,
+        )
+        if (verificationResults['email'] && verificationResults['code']) {
           console.log('Slack link code verified!')
           res.send()
           return
-        } catch (e) {
-          // VC TODO - check for IncorrectPasswordError
+        } else {
+          const errorsBlock = {}
+          if (!verificationResults['email']) {
+            errorsBlock['link_slack_email_block'] = 'Incorrect email'
+          }
+          if (!verificationResults['code']) {
+            errorsBlock['link_slack_code_block'] = 'Incorrect code'
+          }
           res.json({
             'response_action': 'errors',
-            'errors': {
-              'link_slack_code_block': 'Incorrect code'
-            }
+            'errors': errorsBlock,
           })
           return
         }

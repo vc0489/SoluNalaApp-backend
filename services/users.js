@@ -160,19 +160,19 @@ class UserService extends BaseService {
       throw new errors.BadRequest("Slack user already linked")
     }
 
-    if (email === slackUserRow[0]['email']) {
-      if (
-        !bcrypt.compareSync(
-          verificationCode,
-          slackUserRow[0]['verification_code_hash']
-        )
-      ) {
-        throw new errors.IncorrectPasswordError(
-          'Incorrect verification code',
-          null
-        )
-      }
+    const verificationResults = { 'email': true, 'code': true }
+    if (email !== slackUserRow[0]['email']) {
+      verificationResults['email'] = false
     }
+    if (
+      !bcrypt.compareSync(
+        verificationCode,
+        slackUserRow[0]['verification_code_hash']
+      )
+    ) {
+      verificationResults['code'] = false
+    }
+    return verificationResults
   }
 
   async getUserIdByEmail(email) {
