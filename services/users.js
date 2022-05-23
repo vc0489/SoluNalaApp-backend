@@ -160,9 +160,12 @@ class UserService extends BaseService {
       throw new errors.BadRequest("Slack user already linked")
     }
 
+    let verified = true
     const verificationResults = { 'email': true, 'code': true }
+
     if (email !== slackUserRow[0]['email']) {
       verificationResults['email'] = false
+      verified = false
     }
     if (
       !bcrypt.compareSync(
@@ -171,6 +174,15 @@ class UserService extends BaseService {
       )
     ) {
       verificationResults['code'] = false
+      verified = false
+    }
+
+    if (verified) {
+      await this.daoRequest(
+        'patchSlackUser',
+        [slackUserId, {verified: true}],
+        'Error patching slack user in the DB'
+      )
     }
     return verificationResults
   }
