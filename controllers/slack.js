@@ -209,7 +209,7 @@ slackRouter.post(
         return
       }
 
-      if (slackUserRow['verified']) {
+      if (slackUserRow[0]['verified']) {
         res.json({
           response_type: "in_channel",
           text: "This Slack account is already linked to SoluNalaApp.",
