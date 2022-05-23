@@ -198,6 +198,7 @@ const getSlackUserAndEmail = async (slack_user_id) => {
         u.email,
         s.slack_user_id,
         s.verified,
+        s.verification_expiry,
         s.verification_code_hash
       FROM users u
       JOIN slack_user s ON u.id=s.user_id
