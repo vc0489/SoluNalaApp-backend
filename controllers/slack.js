@@ -2,6 +2,9 @@ const slackRouter = require('express').Router()
 const UserService = require('../services/users')
 const userService = new UserService()
 
+const CatService = require('../services/cats')
+const catService = new CatService()
+
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
@@ -196,6 +199,38 @@ slackRouter.post(
     //   Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
     // },
 
+    if (command === "add-weight") {
+      // VC check if account linked first
+      // -- Get cat names
+      // -- Modal with
+      // ----- Drop down of cat names
+      // ----- Date picker
+      // ----- Weight
+      const slackUserRow = await userService.getSlackUserLinkAndEmail(slackUserId)
+      if (slackUserRow.length !== 1) {
+        res.json({
+          response_type: "in_channel",
+          text: "This Slack account is not linked to SoluNalaApp",
+        })
+        return
+      }
+
+      if (!slackUserRow[0].verified) {
+        res.json({
+          response_type: "in_channel",
+          text: "This Slack account is not linked to SoluNalaApp",
+        })
+        return
+      }
+
+      const userCats = await catService.getCats(slackUserRow[0].user_id)
+      const catNames = userCats.map(cat => cat.cat_name)
+      res.json({
+        response_type: "in_channel",
+        text: `Your cats: ${catNames}`,
+      })
+      return
+    }
 
     if (command === "link") {
       const slackUserRow = await userService.getSlackUserLinkAndEmail(slackUserId)
@@ -212,7 +247,7 @@ slackRouter.post(
       if (slackUserRow[0]['verified']) {
         res.json({
           response_type: "in_channel",
-          text: "This Slack account is already linked to SoluNalaApp.",
+          text: "This Slack account is already linked to SoluNalaApp!",
         })
         return
       }

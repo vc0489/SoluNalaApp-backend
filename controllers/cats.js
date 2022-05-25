@@ -22,11 +22,12 @@ function delay(n) {
 // Get user cats
 catsRouter.get('/', async (req, res, next) => {
   //await delay(10000)
-  catService.getCats(req.user_id, cats => {
+  try {
+    const cats = await catService.getCats(req.user_id)
     res.json(cats)
-  }).catch(e => {
+  } catch (e) {
     next(e)
-  })
+  }
 })
 
 // Add new cat

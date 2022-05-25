@@ -57,7 +57,7 @@ userRouter.post(
   requireFieldsNotNull(['slack_id']),
   async (req, res, next) => {
     try {
-      [verificationCode, verificationExpiry] = await userService.linkSlackUser(req.user_id, req.body.slack_id)
+      const [verificationCode, verificationExpiry] = await userService.linkSlackUser(req.user_id, req.body.slack_id)
       res.status(201).send(
         {msg: `Slack user ID linked to account. Please enter verification code ${verificationCode} before ${verificationExpiry}`}
       )
