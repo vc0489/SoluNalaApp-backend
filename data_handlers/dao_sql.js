@@ -196,6 +196,7 @@ const getSlackUserAndEmail = async (slack_user_id) => {
     (
       SELECT
         u.email,
+        s.user_id,
         s.slack_user_id,
         s.verified,
         s.verification_expiry,

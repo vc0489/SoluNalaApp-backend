@@ -12,9 +12,9 @@ const wait = ms => {
   })
 }
 class CatService extends BaseService{
-  async getCats(userId, callback) {
+  async getCats(userId) {
     const data = await this._getUserCats(userId)
-    callback(transformers.transformCats(data))
+    return transformers.transformCats(data)
   }
 
   async addCat(userId, catData, callback) {
