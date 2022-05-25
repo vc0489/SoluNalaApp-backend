@@ -224,7 +224,7 @@ slackRouter.post(
       }
 
       const userCats = await catService.getCats(slackUserRow[0].user_id)
-      const catNames = userCats.map(cat => cat.cat_name)
+      const catNames = userCats.map(cat => cat.name)
       res.json({
         response_type: "in_channel",
         text: `Your cats: ${catNames}`,
