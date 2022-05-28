@@ -14,6 +14,7 @@ const errors = require('../services/utils/errors')
 
 const SLASH_TAGS = {
   LINK_SLACK: "link-slack",
+  ADD_WEIGHT: "add-weight",
 }
 
 // VC TODO - convert to middleware
@@ -229,6 +230,103 @@ slackRouter.post(
         response_type: "in_channel",
         text: `Your cats: ${catNames}`,
       })
+      const modalRes = await axios.post(
+        "https://slack.com/api/views.open",
+        {
+          "trigger_id": triggerId,
+          "view": {
+            "type": "modal",
+            "callback_id": "add-weight-modal",
+            "title": {
+              "type": "plain_text",
+              "text": "Record cat weight"
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Submit"
+            },
+            "private_metadata": JSON.stringify({
+              slash_type: SLASH_TAGS.ADD_WEIGHT,
+              channel_id,
+            }),
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "add_weight_instruction",
+                "text": {
+                  "type": "mrkdwn",
+                  // "text": "*Welcome* to ~my~ Block Kit _modal_!"
+                  "text": "Placeholder"
+                },
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Pick an item from the dropdown list"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select an item",
+                    "emoji": true
+                  },
+                  "options": userCats.map(cat => (
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": cat.name,
+                        "emoji": true,
+                      },
+                      "value": cat.id
+                    }
+                  )),
+                  "action_id": "select_cat_action"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "cat_weight_block",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Weight in grams"
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "add_weight_grams",
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "e.g. 4500"
+                  }
+                }
+              },
+              // {
+              //   "type": "input",
+              //   "block_id": "link_slack_code_block",
+              //   "label": {
+              //     "type": "plain_text",
+              //     "text": "Code"
+              //   },
+              //   "element": {
+              //     "type": "plain_text_input",
+              //     "action_id": "link_slack_code",
+              //     "placeholder": {
+              //       "type": "plain_text",
+              //       "text": "e.g. 1A9x3u"
+              //     }
+              //   }
+              // },
+            ]
+          }
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
+          }
+        }
+      )
       return
     }
 
