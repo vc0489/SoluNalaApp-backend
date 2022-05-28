@@ -48,7 +48,7 @@ slackRouter.post(
       console.log(`private metadata = ${payload.view.private_metadata}`)
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
-      if (privateMetadata.slash_Type === SLASH_TAGS.ADD_WEIGHT) {
+      if (privateMetadata.slash_type === SLASH_TAGS.ADD_WEIGHT) {
           res.send()
           console.log('Adding weight...')
           return
