@@ -264,7 +264,7 @@ slackRouter.post(
                 "block_id": "add_weight_select_cat",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Select cat"
+                  "text": "*Cat*"
                 },
                 "accessory": {
                   "type": "static_select",
@@ -278,6 +278,10 @@ slackRouter.post(
                       "value": cat.id
                     }
                   )),
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select cat"
+                  },
                   "action_id": "select_cat_action"
                 }
               },
@@ -285,8 +289,8 @@ slackRouter.post(
                 "type": "section",
                 "block_id": "add_weight_select_date",
                 "text": {
-                  "type": "plain_text",
-                  "text": "Date of weight"
+                  "type": "mrkdwn",
+                  "text": "*Date*"
                 },
                 "accessory": {
                   "type": "datepicker",
@@ -300,7 +304,7 @@ slackRouter.post(
               },
               {
                 "type": "input",
-                "block_id": "cat_weight_block",
+                "block_id": "add_weight_input_weight",
                 "label": {
                   "type": "plain_text",
                   "text": "Weight in grams"
