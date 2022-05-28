@@ -48,6 +48,12 @@ slackRouter.post(
       console.log(`private metadata = ${payload.view.private_metadata}`)
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
+      if (privateMetadata.slash_Type === SLASH_TAGS.ADD_WEIGHT) {
+          res.send()
+          console.log('Adding weight...')
+          return
+      }
+
       if (privateMetadata.slash_type === SLASH_TAGS.LINK_SLACK) {
         const email = view.state.values.link_slack_email_block.link_slack_email.value
         const code = view.state.values.link_slack_code_block.link_slack_code.value
@@ -256,7 +262,7 @@ slackRouter.post(
                 "text": {
                   "type": "mrkdwn",
                   // "text": "*Welcome* to ~my~ Block Kit _modal_!"
-                  "text": "Placeholder"
+                  "text": "Record the weight of a cat for a chosen date"
                 },
               },
               {
