@@ -261,17 +261,13 @@ slackRouter.post(
               },
               {
                 "type": "section",
+                "block_id": "add_weight_select_cat",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Pick an item from the dropdown list"
+                  "text": "Select cat"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "placeholder": {
-                    "type": "plain_text",
-                    "text": "Select an item",
-                    "emoji": true
-                  },
                   "options": userCats.map(cat => (
                     {
                       "text": {
@@ -283,6 +279,23 @@ slackRouter.post(
                     }
                   )),
                   "action_id": "select_cat_action"
+                }
+              },
+              {
+                "type": "section",
+                "block_id": "add_weight_select_date",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Date of weight"
+                },
+                "accessory": {
+                  "type": "datepicker",
+                  "action_id": "add_weight_date",
+                  // "initial_date": "1990-04-28",
+                  "placeholder": {
+                    "type": "plain_text",
+                    "text": "Select a date"
+                  }
                 }
               },
               {
