@@ -62,7 +62,7 @@ slackRouter.post(
           if (!weighDate) {
             errorsBlock['add_weight_select_date'] = 'Please select date'
           }
-          if (errorsBlock) {
+          if (Object.keys(errorsBlock).length) {
             res.json({
               'response_action': 'errors',
               'errors': errorsBlock,
