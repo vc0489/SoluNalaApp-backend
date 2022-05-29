@@ -49,12 +49,28 @@ slackRouter.post(
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
       if (privateMetadata.slash_type === SLASH_TAGS.ADD_WEIGHT) {
-          res.send()
           console.log('Adding weight...')
 
-          const catId = view.state.values.add_weight_select_cat.select_cat_action.selected_option.value
+
+          const catId = view.state.values.add_weight_select_cat.select_cat_action.selected_option?.value
           const weighDate = view.state.values.add_weight_select_date.add_weight_date.selected_date
           const grams = view.state.values.add_weight_input_weight.add_weight_grams.value
+          const errorsBlock = {}
+          if (!catId) {
+            errorsBlock['add_weight_select_cat'] = 'Please select cat'
+          }
+          if (!weighDate) {
+            errorsBlock['add_weight_select_date'] = 'Please select date'
+          }
+          if (errorsBlock) {
+            res.json({
+              'response_action': 'errors',
+              'errors': errorsBlock,
+            })
+            return
+          }
+          res.send()
+
           return
       }
 
