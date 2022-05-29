@@ -311,22 +311,39 @@ slackRouter.post(
                 }
               },
               {
-                "type": "section",
+                "type": "input",
                 "block_id": "add_weight_select_date",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Date*"
-                },
-                "accessory": {
+                "element": {
                   "type": "datepicker",
-                  "action_id": "add_weight_date",
                   // "initial_date": "1990-04-28",
                   "placeholder": {
                     "type": "plain_text",
-                    "text": "Select a date"
-                  }
+                    "text": "Select a date",
+                  },
+                  "action_id": "add_weight_date"
+                },
+                "label": {
+                  "type": "plain_text",
+                  "text": "Date",
                 }
               },
+              // {
+              //   "type": "section",
+              //   "block_id": "add_weight_select_date",
+              //   "text": {
+              //     "type": "mrkdwn",
+              //     "text": "*Date*"
+              //   },
+              //   "accessory": {
+              //     "type": "datepicker",
+              //     "action_id": "add_weight_date",
+              //     // "initial_date": "1990-04-28",
+              //     "placeholder": {
+              //       "type": "plain_text",
+              //       "text": "Select a date"
+              //     }
+              //   }
+              // },
               {
                 "type": "input",
                 "block_id": "add_weight_input_weight",
