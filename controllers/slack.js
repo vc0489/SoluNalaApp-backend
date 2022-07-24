@@ -65,7 +65,9 @@ slackRouter.post(
           // Check if weight already exists in DB
           // Add override option to modal
           const slackId = payload.user.id
+          const slackUserRow = await userService.getSlackUserLinkAndEmail(slackId)
           console.log(`slackId = ${slackId}`)
+          console.log(`userId = ${slackUserRow[0].user_id}`)
           // const userWeights = await weightService.getWeights(payload.userId)
 
           if (Object.keys(errorsBlock).length) {
