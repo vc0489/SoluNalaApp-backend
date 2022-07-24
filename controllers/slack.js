@@ -5,6 +5,9 @@ const userService = new UserService()
 const CatService = require('../services/cats')
 const catService = new CatService()
 
+const WeightService = require('../services/weights')
+const weightService = new WeightService()
+
 const { requireFieldsNotNull } = require('../middleware/bodyFieldValidator')
 const axios = require('axios')
 const { read } = require('fs')
@@ -49,22 +52,22 @@ slackRouter.post(
       const privateMetadata = JSON.parse(payload.view.private_metadata)
 
       if (privateMetadata.slash_type === SLASH_TAGS.ADD_WEIGHT) {
-          console.log('Adding weight...')
-
-
           const catId = view.state.values.add_weight_select_cat.select_cat_action.selected_option?.value
           const weighDate = view.state.values.add_weight_select_date.add_weight_date.selected_date
           const grams = parseInt(Number(view.state.values.add_weight_input_weight.add_weight_grams.value))
+
           const errorsBlock = {}
-          // if (!catId) {
-          //   errorsBlock['add_weight_select_cat'] = 'Please select cat'
-          // }
-          // if (!weighDate) {
-          //   errorsBlock['add_weight_select_date'] = 'Please select date'
-          // }
           if (!grams) {
             errorsBlock['add_weight_input_weight'] = 'Invalid weight. Please enter a number.'
           }
+
+          // VC TODO
+          // Check if weight already exists in DB
+          // Add override option to modal
+          const slackId = payload.user.id
+          console.log(`slackId = ${slackId}`)
+          // const userWeights = await weightService.getWeights(payload.userId)
+
           if (Object.keys(errorsBlock).length) {
             res.json({
               'response_action': 'errors',
@@ -73,7 +76,9 @@ slackRouter.post(
             return
           }
           res.send()
-
+          // VC TODO
+          // - Add weight to DB
+          // - Post slack message if successful
           return
       }
 
@@ -111,66 +116,6 @@ slackRouter.post(
 
     return res.json({
       blocks: [
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `email: ${email}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `Slack user ID: ${slackUserId}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `SoluNala user ID: ${userId}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `text: ${req.body.text}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `*Timestamps* slack: ${slackTimestamp}; app: ${currentTimestamp}; diff: ${currentTimestamp-slackTimestamp}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
-        // {
-        //   type: 'section',
-        //   text: {
-        //     type: 'mrkdwn',
-        //     text: `Slack signature verified: ${verifySignature(req)}`
-        //   }
-        // },
-        // {
-        //   type: 'divider',
-        // },
         {
           type: 'section',
           text: {
@@ -228,6 +173,7 @@ slackRouter.post(
     //   'Content-Type': 'application/json; charset=UTF-8',
     //   Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
     // },
+
 
     if (command === "add-weight") {
       // VC check if account linked first
@@ -313,31 +259,6 @@ slackRouter.post(
                   "text": "Cat",
                 }
               },
-              // {
-              //   "type": "section",
-              //   "block_id": "add_weight_select_cat",
-              //   "text": {
-              //     "type": "mrkdwn",
-              //     "text": "*Cat*"
-              //   },
-              //   "accessory": {
-              //     "type": "static_select",
-              //     "options": userCats.map(cat => (
-              //       {
-              //         "text": {
-              //           "type": "plain_text",
-              //           "text": cat.name,
-              //           },
-              //         "value": cat.id
-              //       }
-              //     )),
-              //     "placeholder": {
-              //       "type": "plain_text",
-              //       "text": "Select cat"
-              //     },
-              //     "action_id": "select_cat_action"
-              //   }
-              // },
               {
                 "type": "input",
                 "block_id": "add_weight_select_date",
@@ -371,22 +292,6 @@ slackRouter.post(
                   }
                 }
               },
-              // {
-              //   "type": "input",
-              //   "block_id": "link_slack_code_block",
-              //   "label": {
-              //     "type": "plain_text",
-              //     "text": "Code"
-              //   },
-              //   "element": {
-              //     "type": "plain_text_input",
-              //     "action_id": "link_slack_code",
-              //     "placeholder": {
-              //       "type": "plain_text",
-              //       "text": "e.g. 1A9x3u"
-              //     }
-              //   }
-              // },
             ]
           }
         },

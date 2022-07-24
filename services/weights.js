@@ -4,7 +4,8 @@ const transformers = require('./utils/data_transformers')
 const BaseService = require('./base')
 const dao = require('../data_handlers/dao_sql')
 class WeightService extends BaseService{
-  async getWeights(userId, callback) {
+  // async getWeights(userId, callback) {
+    async getWeights(userId) {
     const [err, data] = await dao.getUserWeights(userId)
 
     if (err) {
@@ -13,7 +14,8 @@ class WeightService extends BaseService{
         err
       )
     }
-    callback(transformers.transformWeights(data))
+    // callback(transformers.transformWeights(data))
+    return transformers.transformWeights(data)
   }
 
   async insertWeight(userId, insertData, callback) {

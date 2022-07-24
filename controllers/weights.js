@@ -45,12 +45,13 @@ weightsRouter.use(checkUser)
 
 // Get all weights of cats belonging to user
 // TODO - order by increasing date
-weightsRouter.get('/', (req, res, next) => {
-  weightService.getWeights(req.user_id, weights => {
+weightsRouter.get('/', async (req, res, next) => {
+  try {
+    const weights = await weightService.getWeights(req.user_id)
     res.json(weights)
-  }).catch(e => {
+  } catch (e) {
     next(e)
-  })
+  }
 })
 
 weightsRouter.post(
