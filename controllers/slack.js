@@ -601,26 +601,6 @@ slackRouter.post(
         },
       ]
     })
-
-
-    // axios.get(
-    //   'https://slack.com/api/users.lookupByEmail',
-    //   {
-    //     params: {
-    //       email: 'vc0489@gmail.com'
-    //     },
-    //     headers: {
-    //       Authorization: 'Bearer xoxb-530987712531-3398917539462-QDAUoVctBlVLIMk3yq0hmUlG'
-    //     }
-    //   }
-    // ).then(slack_res => res.json(slack_res.data))
-    // res.json({
-    //   "response_type": "in_channel",
-    //   "text": JSON.stringify({
-    //     "headers": req.headers,
-    //     "body": req.body
-    //   }),
-    // })
   }
 )
 
