@@ -173,6 +173,7 @@ slackRouter.post(
     }
 
     const triggerId = req.body.trigger_id
+    console.log(`triggerId = ${triggerId}`)
     const channel_id = req.body.channel_id
     const slackUserId = req.body.user_id
 
