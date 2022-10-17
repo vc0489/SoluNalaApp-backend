@@ -68,6 +68,10 @@ slackRouter.post(
           const slackUserRow = await userService.getSlackUserLinkAndEmail(slackId)
           console.log(`slackId = ${slackId}`)
           console.log(`userId = ${slackUserRow[0].user_id}`)
+          console.log(`catId = ${catId}`)
+          console.log(`weighDate = ${weighDate}`)
+          console.log(`grams = ${grams}`)
+          console.log(`userId = ${slackUserRow[0].user_id}`)
           // const userWeights = await weightService.getWeights(payload.userId)
 
           if (Object.keys(errorsBlock).length) {
@@ -171,11 +175,6 @@ slackRouter.post(
     const triggerId = req.body.trigger_id
     const channel_id = req.body.channel_id
     const slackUserId = req.body.user_id
-    // headers: {
-    //   'Content-Type': 'application/json; charset=UTF-8',
-    //   Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`
-    // },
-
 
     if (command === "add-weight") {
       // VC check if account linked first
